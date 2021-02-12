@@ -1,0 +1,1535 @@
+"INPUT for
+		      		JOURNEY
+	(c) Copyright 1988 Infocom, Inc.  All Rights Reserved."
+
+<IFN-YFLAG <SETG TELL-PRINTI-ROUTINE WPRINT>
+	   <SETG TELL-PRINT-ROUTINE WPRINT>>
+
+;"Constants"
+
+<CONSTANT D-RECORD-ON 4>
+<CONSTANT D-RECORD-OFF -4>
+<CONSTANT D-COMMAND-FILE 1>
+
+<CONSTANT DELETE-KEY 127>
+<CONSTANT BACK-SPACE 8>
+<CONSTANT SPACE-BAR 32>
+
+<CONSTANT UP-ARROW 129>
+<CONSTANT DOWN-ARROW 130>
+<CONSTANT LEFT-ARROW 131>
+<CONSTANT RIGHT-ARROW 132>
+
+<CONSTANT SINGLE-CLICK 254>
+<CONSTANT DOUBLE-CLICK 253>
+
+<SETG COMPADSTR <ISTRING <- ,COMMAND-WIDTH 1> !\ >>
+<SETG NAMPADSTR <ISTRING <- ,NAME-WIDTH 1> !\ >>
+<DEFINE COMPAD (STR "OPTIONAL" (PSTR ,COMPADSTR)
+		    "AUX" (LEN <LENGTH .STR>) (CLEN <LENGTH .PSTR>))
+	<COND (<G? .LEN .CLEN>
+	       <SET STR <SUBSTRUC .STR 0 .CLEN>>
+	       <SET LEN .CLEN>)>
+	<STRING .STR <REST .PSTR .LEN>>>
+
+<ZSTART GO> ;"else, ZIL gets confused between verb-word GO and routine GO"
+
+<CONSTANT MINUS-ONE -1>
+
+<GLOBAL DAY 0>
+
+<ROUTINE NEXT-DAY ("OPTIONAL" (AMT 1))
+	 <COND (<G? ,TOP-SCREEN-LINE 0> ;<EQUAL? ,TOP-SCREEN-LINE 1>
+		<RTRUE>)>
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <SETG DAY <+ ,DAY .AMT>>
+	 <GCURSET 1 <- ,SCREEN-WIDTH 10>>
+	 <HLIGHT ,H-INVERSE>
+	 <PRINTN ,DAY>
+	 <COND (<EQUAL? ,DAY 3 23 33>
+		<PRINTI "rd">)
+	       (<EQUAL? ,DAY 2 22 32>
+		<PRINTI "nd">)
+	       (<EQUAL? ,DAY 1 21 31>
+		<PRINTI "st">)
+	       (T
+		<PRINTI "th">)>
+	 <PRINTI " Day">
+	 <HLIGHT ,H-NORMAL>
+	 <IF-YFLAG <SELECT-SCREEN 2>>>
+
+<OBJECT TRAVEL-MODE
+	(ACTION P?TRAVEL-COMMANDS)>
+
+<OBJECT PROVISION-MODE
+	(ACTION P?PROVISION-COMMANDS)>
+
+<OBJECT FIGHT-MODE
+	(ACTION P?FIGHT-COMMANDS)
+	(MODE-COMMANDS COMBAT-COMMAND RETREAT-COMMAND
+	 	       PARLEY-COMMAND NUL-COMMAND)>
+
+<OBJECT OPTION-MODE
+	(ACTION P?OPTION-COMMANDS)
+	(MODE-COMMANDS NUL-COMMAND NUL-COMMAND NUL-COMMAND
+	 	       NUL-COMMAND)>
+
+<GLOBAL PARTY-MODE 0>
+
+<GLOBAL PARTY-MODE-PROPERTY 0>
+
+<GLOBAL NUL-CHARACTER-INPUT
+	<TABLE NUL-COMMAND NUL-COMMAND NUL-COMMAND>>
+
+<GLOBAL CHARACTER-INPUT-TBL
+	<LTABLE <TABLE 0 0 0>
+		<TABLE 0 0 0>
+		<TABLE 0 0 0>
+		<TABLE 0 0 0>
+		<TABLE 0 0 0>>>
+
+<GLOBAL SUBGROUP-MODE <>>
+
+<ROUTINE FILL-CHARACTER-TBL ("AUX" (OFF 0) CHR TBLI TBLC ICNT CCNT CMD)
+	 <SETG UPDATE-FLAG <>>
+	 <REPEAT ()
+		 <COND (<G? <SET OFF <+ .OFF 1>> 5>
+			<RETURN>)
+		       (<AND <SET CHR <GET ,PARTY .OFF>>
+			     <FSET? .CHR ,BUSY>> T)
+		       (<OR <G? .OFF ,PARTY-MAX>
+			    <AND ,SUBGROUP-MODE
+				 <NOT <FSET? .CHR ,SUBGROUP>>>>
+			<COPYT ,NUL-CHARACTER-INPUT
+			       <GET ,CHARACTER-INPUT-TBL .OFF>
+			       6>)
+		       (T
+			<SET CCNT -1>
+			<SET ICNT -1>
+			<SET TBLC <GETPT .CHR ,PARTY-MODE-PROPERTY>>
+			<SET TBLI <GET ,CHARACTER-INPUT-TBL .OFF>>
+			<REPEAT ()
+				<COND (<G? <SET CCNT <+ .CCNT 1>> 2>
+				       <RETURN>)
+				      (T
+				       <SET CMD
+					    <VALID-OPTION <GET .TBLC .CCNT>
+							  .CHR>>
+				       <COND (<OR <EQUAL? ,PARTY-MODE
+							  ,FIGHT-MODE>
+						  <NOT <EQUAL? .CMD
+							       ,NUL-COMMAND>>>
+					      <SET ICNT <+ .ICNT 1>>
+					      <PUT .TBLI .ICNT .CMD>)>)>>
+			<REPEAT ()
+				<COND (<G? <SET ICNT <+ .ICNT 1>> 2>
+				       <RETURN>)
+				      (T
+				       <PUT .TBLI .ICNT ,NUL-COMMAND>)>>)>>>
+
+<ROUTINE VALID-OPTION (CMD CHR "AUX" OFCN)
+	 <COND (<AND <EQUAL? .CMD ,GET-ADVICE-COMMAND>
+		     <NOT <EQUAL? ,PARTY-MODE ,OPTION-MODE>>
+		     <NOT <FSET? ,HERE ,ADVISE>>
+		     <NOT <FSET? ,SCENE-OBJECT ,ADVISE>>>
+		,NUL-COMMAND)
+	       (<AND <EQUAL? .CMD ,MIX-COMMAND>
+		     <NOT <FSET? ,REAGENT ,SOLVED>>>
+		,NUL-COMMAND)
+	       (<AND <EQUAL? .CMD ,DROP-COMMAND>
+		     <FSET? ,HERE ,DONT-DROP>>
+		,NUL-COMMAND)
+	       (<AND <EQUAL? .CMD ,SCOUT-COMMAND ,LOOK-AROUND-COMMAND>
+		     <NOT <EQUAL? ,PARTY-MODE ,OPTION-MODE>>
+		     <OR <FSET? ,HERE ,DONT-SCOUT>
+			 <FSET? ,SCENE-OBJECT ,DONT-SCOUT>>>
+		,NUL-COMMAND)
+	       (<AND <EQUAL? .CMD ,INVENTORY-COMMAND>
+		     <FSET? ,HERE ,INVENTORIED>>
+		,NUL-COMMAND)
+	       (<AND <EQUAL? .CMD ,CAST-COMMAND ,USE-MIX-COMMAND ,MIX-COMMAND>
+		     <NOT <EQUAL? ,PARTY-MODE ,OPTION-MODE>>
+		     <OR <FSET? ,HERE ,DONT-CAST>
+			 <FSET? ,SCENE-OBJECT ,DONT-CAST>>>
+		,NUL-COMMAND)
+	       (<AND <EQUAL? .CMD ,EXAMINE-COMMAND>
+		     <FSET? ,HERE ,UNDERGROUND>
+		     <NOT <FSET? ,PRAXIX ,LIT>>
+		     <NOT <IN-PARTY? ,HURTH>>>
+	        ,NUL-COMMAND)
+	       (<NOT <SET OFCN <GET .CMD ,COMMAND-OBJECT>>>
+		.CMD)
+	       (T
+		<PUT ,O-TABLE 0 0>
+		<SETG ACTOR .CHR>
+		<APPLY .OFCN>
+		<COND (<ZERO? <GET ,O-TABLE 0>> ,NUL-COMMAND)
+		      (T
+		       .CMD)>)>>
+
+<ROUTINE MODE (M "OPTIONAL" (INIT? <>) (DUF? <>) "AUX" TBL (OFF 0))
+	 <SETG PARTY-MODE .M>
+	 <SETG PARTY-MODE-PROPERTY <GETP .M ,P?ACTION>>
+	 <COND (<NOT .DUF?> <SETG UPDATE-FLAG T>)
+	       (T <SETG UPDATE-FLAG <>>)>
+	 <COND (<SET TBL <GETPT .M ,P?MODE-COMMANDS>>
+		<COPYT .TBL
+		       <REST ,PARTY-COMMANDS 2>
+		       <PTSIZE .TBL>>)
+	       (T
+		<COPYT <SET TBL <GETPT ,HERE ,P?TRAVEL-COMMANDS>>
+		       <REST ,PARTY-COMMANDS 2>
+		       <SET OFF <PTSIZE .TBL>>>
+		<COND (<L? .OFF 8>
+		       <PUT ,PARTY-COMMANDS 4 ,NUL-COMMAND>)>)>
+	 <PRINT-COLUMNS T>> 
+
+<ROUTINE INIT-SCREEN ("AUX" LN POS F)
+	 <IF-YFLAG <SETG SCREEN-WIDTH </ <LOWCORE HWRD> ,CHRH>>
+		   <SETG SCREEN-HEIGHT </ <LOWCORE VWRD> ,CHRV>>
+		   <IFFLAG (<==? MVER MAC>
+			    <SETG COMMAND-START-LINE <- ,SCREEN-HEIGHT 4>>)
+			   (T
+			    <SETG COMMAND-START-LINE <- ,SCREEN-HEIGHT 5>>)>
+		   <SETG COMMAND-WIDTH </ ,SCREEN-WIDTH 5>>
+		   <SETG NAME-WIDTH <- ,SCREEN-WIDTH <* ,COMMAND-WIDTH 4> 1>>
+		   <SETG NAME-COLUMN <+ ,PARTY-COMMAND-COLUMN ,COMMAND-WIDTH>>
+		   <SETG CHR-COMMAND-COLUMN <+ ,NAME-COLUMN ,NAME-WIDTH>>
+		   <SETG COMMAND-OBJECT-COLUMN <+ ,CHR-COMMAND-COLUMN
+						  ,COMMAND-WIDTH>>>
+	 <CLEAR -1>
+	 <IFFLAG (YFLAG
+		  <SPLIT <* ,SCREEN-HEIGHT ,CHRV>> ;"Lowcore VWRD?"
+		  <MOUSE-LIMIT -1>)
+		 (T <SPLIT 24 ;23>)>
+	 <IF-YFLAG <SETUP-WINDOWS>>
+	 <SELECT-SCREEN 1>
+	 <IFFLAG (<==? MVER MAC>
+		  ; "Instead of HLIGHT 8, so other highlights will work"
+		  <FONT 4>)>
+	 <IFN-YFLAG
+	  <PUTP ,TEXT-WINDOW ,P?LINE <GET <GETP ,TEXT-WINDOW ,P?LINE-TBL> 0>>>
+	 <IFFLAG (<N==? MVER MAC>
+		  <HLIGHT ,H-INVERSE>)>
+	 <COND (<G? ,TOP-SCREEN-LINE 1>
+		<GCURSET 1 1>
+		<PRINTT ,WPRINT-EBUF ,SCREEN-WIDTH>
+		<GCURSET 1 <- </ ,SCREEN-WIDTH 2> 4>>
+		<PRINTI "JOURNEY">)>
+	 <SET LN ,TOP-SCREEN-LINE>
+	 <REPEAT ()
+		 <COND (<EQUAL? .LN <- ,COMMAND-START-LINE 1>>
+			<RETURN>)
+		       (T
+			<IFFLAG (<==? MVER MAC>
+				 <GCURSET .LN <- ,TEXT-WINDOW-LEFT 1>>
+				 <SET F <FONT 3>>
+				 <PRINTC 41>
+				 <SET F <FONT 4>>
+				 ;<PRINTI " ">)
+				(T
+				 <GCURSET .LN 1>
+				 <PRINTI " ">
+				 <GCURSET .LN <- ,TEXT-WINDOW-LEFT 1>>
+				 <PRINTI " ">
+				 <GCURSET .LN ,SCREEN-WIDTH>
+				 <PRINTI " ">)>
+			<SET LN <+ .LN 1>>)>>
+	 <GCURSET .LN 1>
+	 <IFFLAG (<==? MVER MAC>
+		  <SET F <FONT 3>>
+		  <SET F 0>
+		  <REPEAT ()
+			  <COND (<G? <SET F <+ .F 1>> ,SCREEN-WIDTH>
+				 <SET F <FONT 4>>
+				 <RETURN>)
+				(T
+				 <PRINTC 39>)>>)
+		 (T
+		  <HLIGHT ,H-INVERSE>
+		  <PRINTT ,WPRINT-EBUF ,SCREEN-WIDTH>)>
+	 <GCURSET .LN <+ ,COMMAND-WIDTH 4>>
+	 <PRINTI "The Party">
+	 <GCURSET .LN <- <* ,COMMAND-WIDTH 3> 1>>
+	 <PRINTI "Individual Commands">
+	 <REPEAT ()
+		 <COND (<G? <SET LN <+ .LN 1>>
+			    <+ ,COMMAND-START-LINE 4>>
+			<RETURN>)
+		       (T
+			<SET POS 1>
+			<REPEAT ()
+				<COND (<G? .POS ,SCREEN-WIDTH>
+				       <RETURN>)
+				      (T
+				       <IFFLAG (<==? MVER MAC>
+						<COND (<AND <NOT <EQUAL? .POS
+									 1>>
+							    <L? .POS
+							       <- ,SCREEN-WIDTH
+								  5>>>
+						       <GCURSET .LN .POS>
+						       <SET F <FONT 3>>
+						       <COND (<EQUAL?
+							         .POS
+								 <+ ,COMMAND-WIDTH
+								    1>
+								 <+ ,COMMAND-WIDTH ,NAME-WIDTH 1>>
+							      <PRINTC 57>)
+							     (T
+							      <PRINTC 41>)>
+						       <SET F <FONT 4>>
+						       ;<PRINTI " ">)>)
+					       (T
+						<GCURSET .LN .POS>
+						<PRINTI " ">)>)>
+				<COND (<EQUAL? .POS <+ 1 ,COMMAND-WIDTH>>
+				       <SET POS <+ .POS ,NAME-WIDTH>>)
+				      (T
+				       <SET POS <+ .POS ,COMMAND-WIDTH>>)>>)>>
+	 <COND (<G? ,TOP-SCREEN-LINE 1>
+		<GCURSET .LN 1>
+		<PRINTT ,WPRINT-EBUF ,SCREEN-WIDTH>)>
+	 <IFFLAG (<N==? MVER MAC>
+		  <HLIGHT ,H-NORMAL>)>
+	 <SETG DEFAULT-WINDOW ,TEXT-WINDOW>
+	 <IF-YFLAG <SELECT-SCREEN 2>>>	 
+
+<ROUTINE GET-CURSOR (PCM PCF)
+	 <GET <GET ,CHARACTER-INPUT-TBL .PCM> <- .PCF 1>>>
+
+<IFFLAG (<==? MVER MAC>
+<GLOBAL CMD-CAPS-TBL <LTABLE 0 0 0 0 0 0 0 0 0 0 0 0 0>>
+
+; "No longer needed"
+;<ROUTINE PRINT-CAPS (STR "OPTIONAL" (FUCKER? <>) "AUX" LEN TBL CHR)
+	 <COND (<NOT .FUCKER?>
+		<PUT ,CMD-CAPS-TBL 0 0>
+		<DIROUT 3 ,CMD-CAPS-TBL>
+		<PRINT .STR>)>
+	 <DIROUT -3>
+	 <SET LEN <GET ,CMD-CAPS-TBL 0>>
+	 <SET TBL <REST ,CMD-CAPS-TBL 2>>
+	 <REPEAT ()
+		 <SET CHR <GETB .TBL 0>>
+		 <COND (<AND <NOT <L? .CHR !\a>>
+			     <NOT <G? .CHR !\z>>>
+			<PUTB .TBL 0 <- .CHR 32>>)>
+		 <SET TBL <REST .TBL>>
+		 <COND (<L? <SET LEN <- .LEN 1>> 1>
+			<RETURN>)>>
+	 <PRINTT <REST ,CMD-CAPS-TBL 2> <GET ,CMD-CAPS-TBL 0>>>)>
+
+<ROUTINE BOLD-CURSOR (PCM PCF "OPTIONAL" STR "AUX" X Y CMD)
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <GCURSET <SET Y <+ <- ,COMMAND-START-LINE 1> .PCM>>
+		  <SET X <+ ,CHR-COMMAND-COLUMN
+			    <* ,COMMAND-WIDTH <- .PCF 1>>>>>
+	 <PRINTT ,WPRINT-EBUF <- ,COMMAND-WIDTH 1>>
+	 <GCURSET .Y .X>
+	 <COND (<ASSIGNED? STR> <PRINT .STR>)
+	       (T
+		<HLIGHT ,H-BOLD>
+		<PRINT-COMMAND <SET CMD <GET <GET ,CHARACTER-INPUT-TBL
+					       .PCM>
+					  <- .PCF 1>>>>
+		<HLIGHT ,H-NORMAL>)>
+	 <GCURSET .Y .X>
+	 <IF-YFLAG <SELECT-SCREEN 2>>
+	 .CMD>
+
+<ROUTINE NORMAL-ALL (PCM)
+	 <NORMAL-CURSOR .PCM 1>
+	 <NORMAL-CURSOR .PCM 2>
+	 <NORMAL-CURSOR .PCM 3>>
+
+<ROUTINE NORMAL-CURSOR (PCM PCF "OPTIONAL" STR "AUX" Y X)
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <GCURSET <SET Y <+ <- ,COMMAND-START-LINE 1> .PCM>>
+		  <SET X <+ ,CHR-COMMAND-COLUMN
+			    <* ,COMMAND-WIDTH <- .PCF 1>>>>>
+	 <PRINTT ,WPRINT-EBUF <- ,COMMAND-WIDTH 1>> 
+	 <GCURSET .Y .X>
+	 <COND (<ASSIGNED? STR> <PRINT .STR>)
+	       (T
+		<PRINT-COMMAND <GET <GET ,CHARACTER-INPUT-TBL .PCM>
+				    <- .PCF 1>>>)>
+	 <IF-YFLAG <SELECT-SCREEN 2>>>
+
+<GLOBAL MOUSETBL <TABLE 0 0>>
+
+<ROUTINE GMSLOCX ()
+	 <COND (<EQUAL? ,CHRH 1> <LOWCORE MSLOCX>)
+	       (T
+		<+ </ <- <LOWCORE MSLOCX> 1> ,CHRH> 1>)>>
+
+<ROUTINE GMSLOCY ()
+	 <COND (<EQUAL? ,CHRV 1> <LOWCORE MSLOCY>)
+	       (T
+		<+ </ <- <LOWCORE MSLOCY> 1> ,CHRV> 1>)>>
+
+<ROUTINE LOCATE-MOUSE ("AUX" (MX <GMSLOCX>) (MY <GMSLOCY>))
+	 <COND (<AND <NOT <L? .MY ,COMMAND-START-LINE>>
+		     <L? .MY <+ ,COMMAND-START-LINE 5>>>
+		<PUT ,MOUSETBL 0 <- .MY <- ,COMMAND-START-LINE 1>>>
+		<COND (<AND <G? .MX 1> <NOT <G? .MX ,COMMAND-WIDTH>>>
+		       <PUT ,MOUSETBL 1 -1>
+		       <RTRUE>)
+		      (<AND <NOT <L? .MX ,CHR-COMMAND-COLUMN>>
+			    <NOT <G? .MX ,SCREEN-WIDTH>>
+			    <NOT <ZERO? <MOD <+ <- .MX ,CHR-COMMAND-COLUMN>
+						1>
+					     ,COMMAND-WIDTH>>>>
+		       <SET MY <+ </ <- .MX ,CHR-COMMAND-COLUMN>
+				     ,COMMAND-WIDTH> 1>>
+		       <PUT ,MOUSETBL 1 .MY>
+		       <RTRUE>)
+		      (T <RFALSE>)>)>>
+
+<ROUTINE PARTY-INPUT ("AUX" (PCM 1) (PCF -1) CHR (CLICK <>) MFLG)
+	 <REPEAT ()
+		 <PRINT-COLUMNS T>
+		 <BOLD-PARTY-CURSOR .PCM .PCF>
+		 <REPEAT ()
+			 <COND (<OR .CLICK <EQUAL? <SET CHR <GETCHR>> 13>>
+				<SET CLICK <>>
+				<BOLD-PARTY-CURSOR .PCM .PCF>
+				<COND (<PROCESS-COMMAND .PCM .PCF>
+				       <PRINT-CHARACTER-COMMANDS>)>
+				<NORMAL-PARTY-CURSOR .PCM .PCF>
+				<RETURN>)
+			       (<AND <EQUAL? .CHR ,SPACE-BAR>
+				     <NOT ,GAME-MODE>>
+				<C-N-D>)
+			       (<EQUAL? .CHR
+					,SINGLE-CLICK
+					,DOUBLE-CLICK
+					,DEFAULT-CHR>
+				<COND (<EQUAL? .CHR ,DEFAULT-CHR>
+				       <COND (<L? <GET ,MOUSETBL 0> 0>
+					      <AGAIN>)>
+				       <SET MFLG <>>)
+				      (T
+				       <SET MFLG T>)>  
+				<COND (<OR <NOT .MFLG> <LOCATE-MOUSE>>
+				       <NORMAL-PARTY-CURSOR .PCM .PCF>
+				       <SET PCM <GET ,MOUSETBL 0>>
+				       <SET PCF <GET ,MOUSETBL 1>>
+				       <COND (<G? .PCF 0>
+					      <CHARACTER-INPUT .PCM
+							       .PCF
+							       .MFLG>
+					      <SET PCM <F-P-C ,SAVED-PCM>>
+					      <SET PCF ,SAVED-PCF>
+					      <SET CLICK ,SAVED-CLICK>)
+					     (T
+					      <SET CLICK .MFLG>)>
+				       <BOLD-PARTY-CURSOR .PCM .PCF>)
+				      (T
+				       <SOUND 1>)>)
+			       (<EQUAL? .CHR ,DOWN-ARROW>
+				<PROG ()
+				      <NORMAL-PARTY-CURSOR .PCM .PCF>
+				      <COND (<EQUAL? .PCM 5>
+					     <SET PCM 1>)
+					    (T
+					     <SET PCM <+ .PCM 1>>)>
+				      <COND (<EQUAL? <BOLD-PARTY-CURSOR .PCM
+									.PCF>
+						     ,NUL-COMMAND>
+					     <AGAIN>)>>)
+			       (<EQUAL? .CHR ,UP-ARROW>
+				<PROG ()
+				      <NORMAL-PARTY-CURSOR .PCM .PCF>
+				      <COND (<EQUAL? .PCM 1>
+					     <SET PCM 5>)
+					    (T
+					     <SET PCM <- .PCM 1>>)>
+				      <COND (<EQUAL? <BOLD-PARTY-CURSOR .PCM
+									.PCF>
+						     ,NUL-COMMAND>
+					     <AGAIN>)>>)
+			       (<EQUAL? .CHR ,LEFT-ARROW>
+				<SOUND 1>)
+			       (<EQUAL? .CHR ,RIGHT-ARROW>
+				<NORMAL-PARTY-CURSOR .PCM .PCF>
+				<COND (<EQUAL? .PCF -1>
+				       <COND (<NOT <EQUAL? <BOLD-CURSOR .PCM
+									1>
+							   ,NUL-COMMAND>>
+					      <CHARACTER-INPUT .PCM 1>
+					      <SET PCM <F-P-C ,SAVED-PCM>>
+					      <SET PCF ,SAVED-PCF>
+					      <SET CLICK ,SAVED-CLICK>)
+					     (T
+					      <SOUND 1>)>)
+				      (T
+				       <SET PCF <+ .PCF 1>>)>
+				<BOLD-PARTY-CURSOR .PCM .PCF>)
+			       (<PARTY-KBD-COMMAND? .CHR>
+				<NORMAL-PARTY-CURSOR .PCM .PCF>
+				<SET PCM <GET ,MOUSETBL 0>>
+				<SET PCF <GET ,MOUSETBL 1>>
+				<BOLD-PARTY-CURSOR .PCM .PCF>
+				<SET CLICK T>)
+			       (T <SOUND 1>)>>>>
+
+<ROUTINE F-P-C (PCM)
+	 <REPEAT ()
+		 <COND (<NOT <EQUAL? <GET ,PARTY-COMMANDS .PCM> ,NUL-COMMAND>>
+			<RETURN .PCM>)
+		       (<EQUAL? .PCM 5>
+			<TELL "[Error 2]">
+			<RETURN 5>)
+		       (T
+			<SET PCM <+ .PCM 1>>)>>>
+
+<ROUTINE FIRST-PARTY ("AUX" (CNT 0))
+	 <REPEAT ()
+		 <COND (<G? <SET CNT <+ .CNT 1>> ,PARTY-MAX>
+			<RETURN -1>)
+		       (<NOT <EQUAL? <GET <GET ,CHARACTER-INPUT-TBL .CNT> 0>
+				     ,NUL-COMMAND>>
+			<RETURN .CNT>)>>>
+
+<ROUTINE FIRST-SUBGROUP ("AUX" (CNT 0))
+	 <REPEAT ()
+		 <COND (<G? <SET CNT <+ .CNT 1>> ,PARTY-MAX>
+			<SET CNT -1>
+			<RETURN>)
+		       (<AND <FSET? <GET ,PARTY .CNT> ,SUBGROUP>
+			     <NOT <EQUAL? <GET <GET ,CHARACTER-INPUT-TBL
+						    .CNT> 0>
+					  ,NUL-COMMAND>>>
+			<RETURN>)>>
+	 .CNT>
+
+<ROUTINE PARTY-KBD-COMMAND? (CHR "AUX" (OFF 1) (MAX 5) CMD)
+	 <COND (<AND <NOT <L? .CHR !\a>>
+		     <NOT <G? .CHR !\z>>>
+		<SET CHR <- .CHR 32>>)>
+	 <REPEAT ()
+		 <COND (<G? .OFF .MAX> <RFALSE>)
+		       (<EQUAL? <SET CMD <GET ,PARTY-COMMANDS .OFF>>
+				,NUL-COMMAND>)
+		       (<EQUAL? .CHR <GET .CMD ,COMMAND-CHR>>
+			<SET OFF <- .OFF 1>>
+			<PUT ,MOUSETBL 0 <+ .OFF 1>>
+			<PUT ,MOUSETBL 1 -1>
+			<RTRUE>)>
+		 <SET OFF <+ .OFF 1>>>>
+
+;"F flag added; but will it work?"
+
+<ROUTINE CHARACTER-KBD-COMMAND? (CHR "OPTIONAL" (F <>)
+				     "AUX" (PCM 1) (CNT 0) OFF TBL CMD)
+	 <COND (<AND <NOT <L? .CHR !\a>>
+		     <NOT <G? .CHR !\z>>>
+		<SET CHR <- .CHR 32>>)>
+	 <REPEAT ()
+		 <COND (<G? .PCM ,PARTY-MAX>
+			<COND (<OR <NOT .F> <ZERO? .CNT>>
+			       <RFALSE>)
+			      (<EQUAL? .CNT 1>
+			       <SETG UPDATE-FLAG T>
+			       <RTRUE>)
+			      (T
+			       <PRINT-CHARACTER-COMMANDS>
+			       <SETG UPDATE-FLAG T>
+			       <RETURN 3>)>)
+		       (T
+			<SET TBL <GET ,CHARACTER-INPUT-TBL .PCM>>
+			<SET OFF 0>
+			<REPEAT ()
+				<COND (<G? .OFF 2> <RETURN>)
+				      (<EQUAL? <SET CMD <GET .TBL .OFF>>
+					       ,NUL-COMMAND>)
+				      (<EQUAL? .CHR <GET .CMD ,COMMAND-CHR>>
+				       <COND (.F
+					      <SET CNT <+ .CNT 1>>)>
+				       <COND (<OR <NOT .F>
+						  <EQUAL? .CNT 1>>
+					      <PUT ,MOUSETBL 0 .PCM>
+					      <PUT ,MOUSETBL 1 <+ .OFF 1>>)>
+				       <COND (<NOT .F> <RTRUE>)>)
+				      (.F
+				       <PUT .TBL .OFF ,NUL-COMMAND>)>
+				<SET OFF <+ .OFF 1>>>)>
+		 <SET PCM <+ .PCM 1>>>>
+
+<ROUTINE OBJECT-KBD-COMMAND? (CHR "OPTIONAL" (MP 2)
+			          "AUX" (OFF 1) (MAX <GET ,O-TABLE 0>) CMD)
+	 <COND (<AND <NOT <L? .CHR !\a>>
+		     <NOT <G? .CHR !\z>>>
+		<SET CHR <- .CHR 32>>)>
+	 <COND (<EQUAL? .MP 3>
+		<SET OFF 6>)>
+	 <REPEAT ()
+		 <COND (<G? .OFF .MAX> <RFALSE>)
+		       (<EQUAL? .CHR <GETP <GET ,O-TABLE .OFF> ,P?KBD>>
+			<SET OFF <- .OFF 1>>
+			<PUT ,MOUSETBL 0 <+ <MOD .OFF 5> 1>>
+			<PUT ,MOUSETBL 1 <+ </ .OFF 5> 2>>
+			<RTRUE>)>
+		 <SET OFF <+ .OFF 1>>>>
+
+<GLOBAL SAVED-PCM 0>
+<GLOBAL SAVED-PCF 0>
+<GLOBAL SAVED-CLICK 0>
+
+<CONSTANT DEFAULT-CHR 2>
+<GLOBAL NEW-DEFAULT-FLAG <>>
+
+<GLOBAL RANDOM-FLAG T>
+
+<GLOBAL F-KEY-TBL
+	<LTABLE V-SAVE V-RESTORE V-SAFE-START-OVER V-SAFE-QUIT V-SCRIPT
+		V-REFRESH V-VERSION>>
+
+<GLOBAL MOUSE-MENU-TBL
+	<LTABLE MOUSE-SAVE MOUSE-RESTORE V-NUL V-SCRIPT V-NUL
+		V-START-OVER ;V-SAFE-START-OVER V-QUIT ;V-SAFE-QUIT V-NUL>>
+
+<ROUTINE MOUSE-SAVE () <V-SAVE <>>>
+
+<ROUTINE MOUSE-RESTORE () <V-RESTORE <>>>
+
+<ROUTINE V-SCRIPT ()
+	 <COND (,SCRIPTING-FLAG
+		<V-SCRIPT-OFF>)
+	       (T
+		<V-SCRIPT-ON>)>>
+
+<CONSTANT F-KEY-START 132>
+<CONSTANT F1 133>
+<CONSTANT F2 134>
+<CONSTANT F3 135>
+<CONSTANT F4 136>
+<CONSTANT F5 137>
+<CONSTANT F6 138>
+<CONSTANT F7 139>
+<CONSTANT F-KEY-END 140>
+
+<CONSTANT CONFIRM-STR "? Hit same key again to confirm]">
+
+<ROUTINE V-SAFE-START-OVER ()
+	 <TELL CR "[Start over" ,CONFIRM-STR CR>
+	 <IFN-YFLAG <WFORCE>>
+	 <COND (<EQUAL? <INPUT 1> ,F3>
+		<V-START-OVER>)>>
+
+<ROUTINE V-SAFE-QUIT ()
+	 <TELL CR "[Quit" ,CONFIRM-STR CR>
+	 <IFN-YFLAG <WFORCE>>
+	 <COND (<EQUAL? <INPUT 1> ,F4>
+		<V-QUIT>)>>
+
+<ROUTINE MOUSE-GAME-MENU? (CHR)
+	 <COND (<EQUAL? .CHR 252>
+		<IF-YFLAG <MOUSE-INFO ,MOUSE-INFO-TBL>>
+		<COND (<EQUAL? <GETB ,MOUSE-INFO-TBL 6> 1>
+		       <RTRUE>)>)>>
+
+<GLOBAL MOUSE-INFO-TBL <TABLE 0 0 0 0>>
+
+<ROUTINE GETCHR ("AUX" CHR F)
+	 <COND (,NEW-DEFAULT-FLAG
+		<SETG NEW-DEFAULT-FLAG <>>
+		,DEFAULT-CHR)
+	       (T
+		<IFN-YFLAG <SELECT-SCREEN 0>>
+		<SET CHR <INPUT 1>>
+		<COND (<AND <EQUAL? ,HERE ,START-LOC>
+			    <EQUAL? .CHR ,F1 ,F2>>
+		       <COND (<EQUAL? .CHR ,F1> <MOVE-TO ,CHEAT-ROOM>)
+			     (T
+			      <TELL N ,SERIAL CR>
+			      <IFN-YFLAG <WFORCE>>)>
+		       <AGAIN>)
+		      (<OR <AND <G? .CHR ,F-KEY-START> <L? .CHR ,F-KEY-END>>
+			   <MOUSE-GAME-MENU? .CHR>>
+		       <SETG GAME-MODE T>
+		       <COND (<NOT <EQUAL? ,SAVED-GAME-ROOM
+					   ,GAME-ROOM
+					   ,CONTROLS-ROOM
+					   ,END-SESSION-ROOM>>
+			      <SAVE-PARTY-COMMANDS>
+			      <SETG SAVED-GAME-ROOM ,HERE>
+			      <SETG SAVED-GAME-MODE ,PARTY-MODE>)>
+		       <COND (<EQUAL? .CHR 252>
+			      <APPLY <GET ,MOUSE-MENU-TBL
+					  <GETB ,MOUSE-INFO-TBL 7>>>
+			      <COND (<EQUAL? ,HERE ,GAME-ROOM
+					     ,CONTROLS-ROOM
+					     ,END-SESSION-ROOM>
+				     <V-CANCEL>)>)
+			     (T
+			      <APPLY <GET ,F-KEY-TBL <- .CHR ,F-KEY-START>>>)>)
+		      (<EQUAL? .CHR 6>
+		       <TELL CR "[Random O">
+		       <COND (,RANDOM-FLAG
+			      <SETG RANDOM-FLAG <>>
+			      <RANDOM -10>
+			      <TELL "FF">)
+			     (T
+			      <SETG RANDOM-FLAG T>
+			      <RANDOM 0>
+			      <TELL "N">)>
+		       <TELL "[" CR>
+		       <AGAIN>)
+		      (<OR <EQUAL? .CHR 18>
+			   <BTST <SET F <LOWCORE FLAGS>> 4>>
+		       <REFRESH-SCREEN>
+		       <LOWCORE FLAGS <BAND .F -5>>
+		       <AGAIN>)
+		      (<EQUAL? .CHR 9>
+		       <DIRIN ,D-COMMAND-FILE>
+		       <AGAIN>)
+		      (<EQUAL? .CHR 2>
+		       <COND (,COMMAND-FILE-FLAG
+			      <SETG COMMAND-FILE-FLAG <>>
+			      <DIROUT ,D-RECORD-OFF>)
+			     (T
+			      <SETG COMMAND-FILE-FLAG T>
+			      <DIROUT ,D-RECORD-ON>)>
+		       <AGAIN>)>
+		<IFN-YFLAG <SELECT-SCREEN 1>>
+		.CHR)>>
+
+<GLOBAL COMMAND-FILE-FLAG <>>
+
+<ROUTINE REFRESH-CHECK ("AUX" F)
+	 <COND (<OR <BTST <SET F <LOWCORE FLAGS>> 4>
+		    <NOT <EQUAL? <LOWCORE FWRD> ,XFWRD>>
+		    <NOT <EQUAL? <LOWCORE HWRD> ,XHWRD>>
+		    <NOT <EQUAL? <LOWCORE VWRD> ,XVWRD>>>
+		<REFRESH-SCREEN>
+		<LOWCORE FLAGS <BAND .F -5>>)>>
+
+<ROUTINE REFRESH-SCREEN ("OPTIONAL" (INIT? T))
+	 <COND (.INIT? <INIT-SCREEN>)>
+	 <PRINT-COLUMNS T>
+	 <PRINT-CHARACTER-COMMANDS>
+	 <NEXT-DAY 0>
+	 <NEW-DEFAULT>
+	 <SETG WPRINT-FLAG T>
+	 <GRAPHIC>
+	 <IFN-YFLAG <WFORCE>>>
+
+<ROUTINE CHARACTER-INPUT (PCM PCF "OPTIONAL" (CLICK <>) "AUX" CHR MFLG FLG)
+	 <REPEAT ()
+		 <BOLD-CURSOR .PCM .PCF>
+		 <REPEAT ()
+			 <COND (<OR .CLICK <EQUAL? <SET CHR <GETCHR>> 13>>
+				<SET CLICK <>>
+				<BOLD-CURSOR .PCM .PCF>
+				<COND (<PROCESS-COMMAND .PCM .PCF>
+				       <PRINT-CHARACTER-COMMANDS>
+				       <COND (<EQUAL? <GET-CURSOR .PCM
+								  .PCF>
+						      ,NUL-COMMAND>
+					      <C-N-D .PCM .PCF>)>)>
+				<NORMAL-CURSOR .PCM .PCF>
+				<RETURN>)
+			       (<EQUAL? .CHR ,SPACE-BAR>
+				<NEW-DEFAULT>)
+			       (<EQUAL? .CHR
+					,SINGLE-CLICK
+					,DOUBLE-CLICK
+					,DEFAULT-CHR>
+				<COND (<EQUAL? .CHR ,DEFAULT-CHR>
+				       <SET MFLG <>>)
+				      (T
+				       <SET MFLG T>)>
+				<COND (<OR <NOT .MFLG> <LOCATE-MOUSE>>
+				       <NORMAL-CURSOR .PCM .PCF>
+				       <SET PCM <GET ,MOUSETBL 0>>
+				       <SET PCF <GET ,MOUSETBL 1>>
+				       <COND (<L? .PCF 0>
+					      <SETG SAVED-PCM .PCM>
+					      <SETG SAVED-PCF .PCF>
+					      <SETG SAVED-CLICK .MFLG>
+					      <RTRUE>)
+					     (T
+					      <BOLD-CURSOR .PCM .PCF>
+					      <SET CLICK .MFLG>)>)
+				      (T
+				       <SOUND 1>)>)
+			       (<EQUAL? .CHR ,DOWN-ARROW>
+				<PROG ()
+				      <COND (<EQUAL? ,PARTY-MODE ,OPTION-MODE>
+					     <SOUND 1>)
+					    (T
+					     <NORMAL-CURSOR .PCM .PCF>
+					     <COND (<EQUAL? .PCM ,PARTY-MAX>
+						    <SET PCM 1>)
+						   (T
+						    <SET PCM <+ .PCM 1>>)>
+					     <COND (<EQUAL? <BOLD-CURSOR .PCM
+									 .PCF>
+							    ,NUL-COMMAND>
+						    <AGAIN>)>)>>)
+			       (<EQUAL? .CHR ,UP-ARROW>
+				<PROG ()
+				      <COND (<EQUAL? ,PARTY-MODE ,OPTION-MODE>
+					     <SOUND 1>)
+					    (T
+					     <NORMAL-CURSOR .PCM .PCF>
+					     <COND (<EQUAL? .PCM 1>
+						    <SET PCM ,PARTY-MAX>)
+						   (T
+						    <SET PCM <- .PCM 1>>)>
+					     <COND (<EQUAL? <BOLD-CURSOR .PCM
+									 .PCF>
+							    ,NUL-COMMAND>
+						    <AGAIN>)>)>>)
+			       (<EQUAL? .CHR ,LEFT-ARROW>
+				<PROG ()
+				      <COND (<EQUAL? .PCF 1>
+					     <NORMAL-CURSOR .PCM .PCF>
+					     <SETG SAVED-PCM .PCM>
+					     <SETG SAVED-PCF -1>
+					     <SETG SAVED-CLICK <>>
+					     <RTRUE>)
+					    (T
+					     <NORMAL-CURSOR .PCM .PCF>
+					     <SET PCF <- .PCF 1>>
+					     <COND (<EQUAL? <BOLD-CURSOR .PCM
+									 .PCF>
+							    ,NUL-COMMAND>
+						    <AGAIN>)>)>>)
+			       (<EQUAL? .CHR ,RIGHT-ARROW>
+				<PROG ()
+				      <NORMAL-CURSOR .PCM .PCF>
+				      <COND (<EQUAL? .PCF 3>
+					     <SET PCF 1>)
+					    (T
+					     <SET PCF <+ .PCF 1>>)>
+				      <COND (<EQUAL? <BOLD-CURSOR .PCM .PCF>
+						     ,NUL-COMMAND>
+					     <AGAIN>)>>)
+			       (<SET FLG <CHARACTER-KBD-COMMAND? .CHR ;T>>
+				<NORMAL-CURSOR .PCM .PCF>
+				<SET PCM <GET ,MOUSETBL 0>>
+				<SET PCF <GET ,MOUSETBL 1>>
+				<BOLD-CURSOR .PCM .PCF>
+				<COND (<EQUAL? .FLG 1> <SET CLICK T>)>)
+			       (T <SOUND 1>)>>>>
+
+<ROUTINE C-N-D ("OPTIONAL" (PCM 0) (PCF 1) "AUX" F)
+	 <COND (<OR <EQUAL? .PCF 1>
+		    <EQUAL? <GET-CURSOR .PCM <- .PCF 1>> ,NUL-COMMAND>>
+		<COND (,SUBGROUP-MODE
+		       <SET F <FIRST-SUBGROUP>>)
+		      (T
+		       <SET F <FIRST-PARTY>>)>
+		<COND (<EQUAL? .F -1>
+		       <NEW-DEFAULT 1 -1>)
+		      (T
+		       <NEW-DEFAULT .F 1>)>) 
+	       (T
+		<NEW-DEFAULT .PCM <- .PCF 1>>)>>
+
+<ROUTINE CLEAR-FIELDS ()
+	 <PRINT-CHARACTER-COMMANDS T>>
+
+<ROUTINE PRINT-CHARACTER-COMMANDS ("OPTIONAL" (CLEAR <>)
+		       "AUX" PTBL (CNT 5) C BTBL (LN ,COMMAND-START-LINE)
+			     POS BCNT CHR)
+	 <COND (<AND ,UPDATE-FLAG <NOT .CLEAR>> <FILL-CHARACTER-TBL>)>
+	 <SET PTBL ,PARTY>
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <REPEAT ()
+		 <COND (<L? <SET CNT <- .CNT 1>> 0>
+			<IF-YFLAG <SELECT-SCREEN 2>> 
+			<RETURN>)
+		       (T
+			<SET CHR <GET .PTBL 1>>
+			<SET POS ,NAME-COLUMN>
+			<GCURSET .LN .POS>
+			<IFFLAG (<N==? MVER MAC>
+				 <HLIGHT ,H-INVERSE>)>
+			<COND (<OR <ZERO? .CHR>
+				   <AND ,SUBGROUP-MODE
+					<NOT <FSET? .CHR ,SUBGROUP>>>>
+			       <PRINTT ,WPRINT-EBUF <- ,NAME-WIDTH 1>>)
+			      (T
+			       <COND (<AND <EQUAL? .CHR ,TAG>
+					   <NOT <ZERO? ,TAG-NAME-LENGTH>>>
+				      <PRINTT <REST ,NAME-TBL 2>
+					      ,TAG-NAME-LENGTH>
+				      <PRINTT ,WPRINT-EBUF
+					      <- <- ,NAME-WIDTH
+						    ,TAG-NAME-LENGTH>
+						 1>>)
+				     (T
+				      <PRINTD .CHR>)>
+			       <GCURSET .LN <+ .POS
+					       <- ,NAME-WIDTH 5>>>
+			       <PRINTI "-->">)>
+			<IFFLAG (<N==? MVER MAC>
+				 <HLIGHT ,H-NORMAL>)>
+			<SET BTBL <GET ,CHARACTER-INPUT-TBL <- 5 .CNT>>>
+			<SET BCNT 0>
+			<SET POS ,CHR-COMMAND-COLUMN>
+			<REPEAT ()
+				<COND (<G? .BCNT 2>
+				       <RETURN>)
+				      (T
+				       <GCURSET .LN .POS>
+				       <PRINTT ,WPRINT-EBUF
+					       <- ,COMMAND-WIDTH 1>>
+				       <GCURSET .LN .POS>
+				       <COND (<OR .CLEAR
+						  <ZERO? .CHR>
+						  <AND ,SUBGROUP-MODE
+						       <NOT
+							<FSET? .CHR
+							       ,SUBGROUP>>>>
+					      T)
+					     (T
+					      <PRINT-COMMAND <GET .BTBL .BCNT>>
+					      )>)>
+				<SET POS <+ .POS ,COMMAND-WIDTH>>
+				<SET BCNT <+ .BCNT 1>>>
+			<SET LN <+ .LN 1>>
+			<SET PTBL <REST .PTBL 2>>)>>>
+
+;"Command/Object finders"
+
+<GLOBAL ACTOR <>>
+
+<GLOBAL ACTION <>>
+
+<ROUTINE SCENE (OBJ "OPTIONAL" (M <>) "AUX" TMP)
+	 <SETG UPDATE-FLAG T>
+	 <SCENE-ACTION ,SCENE-END-COMMAND>
+	 <COND (<NOT .OBJ>
+		<SETG SCENE-OBJECT ,DEFAULT-SCENE>)
+	       (T
+		<SETG SCENE-OBJECT .OBJ>)>
+	 <COND (<SET TMP <GETP ,SCENE-OBJECT ,P?GRAPHIC>>
+		<GRAPHIC .TMP>)>
+	 <COND (.M
+		<MODE .M>
+		<PRINT-CHARACTER-COMMANDS>)>
+	 <SCENE-ACTION ,SCENE-START-COMMAND>
+	 <RTRUE>>
+
+<OBJECT DEFAULT-SCENE
+	(ACTION V-NUL)>
+
+<GLOBAL SCENE-OBJECT 0>
+
+<ROUTINE PERFORM (CMD "AUX" TMP PNL)
+	 <COND (<AND <NOT .PNL>
+		     <NOT <FAKE-COMMAND? .CMD>>>
+		<IFFLAG (<==? MVER MAC>
+			 <TELL CR>)
+			(T
+			 <TELL "*" CR>)>)>
+	 <COND (<AND ,SCRIPTING-FLAG
+		     <NOT ,DONT-SCRIPT-INPUT>
+		     <NOT <FAKE-COMMAND? .CMD>>>
+		<SELECT-SCREEN 0>
+		<DIROUT -1>
+		<PRINTI ") ">
+		<COND (,ACTOR
+		       <PRINT-DESC ,ACTOR>
+		       <PRINTI ", ">)>
+		<PRINT <GET .CMD ,COMMAND-STR>>
+		<PRINTI " ">
+		<COND (,ACTION-OBJECT
+		       <PRINT-DESC ,ACTION-OBJECT>)>
+		<COND (<AND ,ACTION-PRSI ,PRSI-PREP>
+		       <PRINTI " ">
+		       <PRINT ,PRSI-PREP>)>
+		<COND (,ACTION-PRSI
+		       <PRINTI " ">
+		       <PRINT-DESC ,ACTION-PRSI>)>
+		<CRLF>
+		<CRLF>
+		<DIROUT 1>
+		<IFFLAG (YFLAG <SELECT-SCREEN 2>)
+			(T <SELECT-SCREEN 1>)>)>
+	 <SETG ACTION .CMD>
+	 <COND (<AND ,ACTION-OBJECT
+		     <SET TMP <GETP ,ACTION-OBJECT ,P?PRSI>>
+		     <NOT <APPLY .TMP>>>
+		<RFALSE>)
+	       (<NOT .TMP>
+		<SETG ACTION-PRSI <>>)> 
+	 <COND (<APPLY <GETP ,SCENE-OBJECT ,P?ACTION>>
+		T)
+	       (<APPLY <GETP ,HERE ,P?ACTION>>)
+	       (<AND <EQUAL? ,PARTY-MODE ,FIGHT-MODE>
+		     <APPLY <GETP ,OPPONENT ,P?ACTION>>>
+		T)
+	       (<AND ,ACTION-OBJECT
+		     <APPLY <GETP ,ACTION-OBJECT ,P?ACTION>>>
+		T)
+	       (T
+		<APPLY <GET .CMD ,COMMAND-ACTION>>)>> 
+
+<GLOBAL MOVE-NUMBER 0>
+
+<ROUTINE FAKE-COMMAND? (CMD)
+	 <OR <EQUAL? .CMD ,NUL-COMMAND ,MORE-COMMAND>
+	     <EQUAL? .CMD ,ILL-COMMAND ,BUSY-COMMAND ,GONE-COMMAND>>>
+
+<ROUTINE PROCESS-COMMAND (PCM PCF "OPTIONAL" (PNL <>)
+			  	  "AUX" TMP CMD OFCN (RES T))
+	 <SETG ACTION-OBJECT <>>
+	 <COND (<L? .PCF 0>
+		<SETG ACTOR <>>
+		<SET CMD <GET ,PARTY-COMMANDS .PCM>>)
+	       (T
+		<SETG ACTOR <GET ,PARTY .PCM>>
+		<SET CMD <GET <GET ,CHARACTER-INPUT-TBL .PCM>
+			      <- .PCF 1>>>)>
+	 <COND (<NOT <SET OFCN <GET .CMD ,COMMAND-OBJECT>>>
+		<SET RES <PERFORM .CMD>>)
+	       (T
+		<PUT ,O-TABLE 0 0>
+		<APPLY .OFCN>
+		<COND (<G? <SET TMP <GET ,O-TABLE 0>> 0>
+		       <SET TMP <+ .TMP 1>>
+		       <PUT ,O-TABLE 0 .TMP>
+		       <PUT ,O-TABLE .TMP ,CANCEL-OBJECT>
+		       <CLEAR-FIELDS>
+		       <BOLD-CURSOR .PCM 1 <GET-COMMAND .CMD>>
+		       <PREP-CHECK .CMD .PCM>
+		       <PRINT-COLUMNS>
+		       <COMMAND-OBJECT-INPUT>
+		       <COND (<EQUAL? ,ACTION-OBJECT ,CANCEL-OBJECT>
+			      <SET RES <>>
+			      <SETG ACTION ,NUL-COMMAND>)
+			     (T
+			      <SET RES <PERFORM .CMD>>)>)
+		      (T
+		       <TELL "[Error: No object?]">)>)>
+	 <COND (.RES
+		<COND (<NOT <EQUAL? ,ACTION ,NUL-COMMAND>>
+		       <COND (<NOT <GAME-ACTION?>>
+			      <RUN-CLOCK>)>
+		       <TELL CR>
+		       <SETG MOVE-NUMBER <+ ,MOVE-NUMBER 1>>)>)
+	       (<AND <NOT .PNL>
+		     <NOT <EQUAL? ,ACTION-OBJECT ,CANCEL-OBJECT>>>
+		<SOUND 1>)>
+	 <IFN-YFLAG <COND (<NOT .PNL> <WFORCE>)>>
+	 <COND (,UPDATE-FLAG
+		<SET OFCN T>)>
+	 <COND (<EQUAL? ,ACTION ,MUSINGS-COMMAND> <RFALSE>)>
+	 .OFCN>
+
+<ROUTINE PREP-CHECK (CMD PCM "AUX" (STR <>))
+	 <COND (<EQUAL? .PCM 5> <RFALSE>)
+	       (<EQUAL? .CMD ,USE-MIX-COMMAND>
+		<SET STR "on">)
+	       (<EQUAL? .CMD
+			,ASK-UMBER-COMMAND
+			,ASK-TREE-COMMAND
+			,ASK-MINER-COMMAND>
+		<SET STR "about">)>
+	 <COND (.STR <BOLD-CURSOR <+ .PCM 1> 1 .STR>)>>
+
+<OBJECT CANCEL-OBJECT
+	(SDESC "[cancel]")
+	(KBD BACK-SPACE)>
+
+<GLOBAL UPDATE-FLAG <>>
+
+<ROUTINE FIND-OBJECTS (OBJ "OPTIONAL" (BIT <>) "AUX" F CNT)
+	 <SET F <FIRST? .OBJ>>
+	 <REPEAT ()
+		 <COND (<OR <NOT .F>
+			    <EQUAL? .CNT 9>>
+			<RETURN>)
+		       (<OR <NOT .BIT> <NOT <FSET? .F .BIT>>>
+			<SET CNT <+ <GET ,O-TABLE 0> 1>>
+			<PUT ,O-TABLE .CNT .F>
+			<PUT ,O-TABLE 0 .CNT>)>
+		 <SET F <NEXT? .F>>>> 
+
+<ROUTINE PRINT-COLUMNS ("OPTIONAL" (PARTY? <>) (PRSI? <>)
+				"AUX" CNT (LN ,COMMAND-START-LINE) OBJ
+				      OTBL ROW (OCNT 0))
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <COND (.PARTY?
+		<SET ROW ,PARTY-COMMAND-COLUMN>
+		<SET OTBL ,PARTY-COMMANDS>)
+	       (.PRSI?
+		<SET ROW <+ ,COMMAND-OBJECT-COLUMN ,COMMAND-WIDTH>>
+		<SET OTBL <REST ,O-TABLE 10>>)
+	       (T
+		<SET ROW ,COMMAND-OBJECT-COLUMN>
+		<SET OTBL ,O-TABLE>)>
+	 <SET CNT <GET .OTBL 0>>
+	 <REPEAT ()
+		 <COND (<L? <SET CNT <- .CNT 1>> 0>
+			<IF-YFLAG <SELECT-SCREEN 2>>
+			<RETURN>)
+		       (T
+			<COND (<G? <SET OCNT <+ .OCNT 1>> 5>
+			       <SET OCNT 0>
+			       <SET ROW <+ .ROW ,COMMAND-WIDTH>>
+			       <SET LN ,COMMAND-START-LINE>)>
+			<SET OBJ <GET .OTBL 1>>
+			<GCURSET .LN .ROW>
+			<COND (.PARTY?
+			       <COND (<AND <EQUAL? .OBJ ,TAG-ROUTE-COMMAND>
+					   <NOT <ZERO? ,TAG-NAME-LENGTH>>>
+				      <TAG-ROUTE-PRINT>)
+				     (T
+				      <PRINTT ,WPRINT-EBUF
+					      <- ,COMMAND-WIDTH 1>>
+				      <GCURSET .LN .ROW>
+				      <PRINT-COMMAND .OBJ>)>)
+			      (T
+			       <PRINT-DESC .OBJ>)>
+			<SET LN <+ .LN 1>>
+			<SET OTBL <REST .OTBL 2>>)>>>
+
+<GLOBAL 12-WIDTH 71>
+
+<ROUTINE TAG-ROUTE-PRINT ()
+	 <PRINTT <REST ,NAME-TBL 2>
+		 ,TAG-NAME-LENGTH>
+	 <COND (<OR <L? ,SCREEN-WIDTH ,12-WIDTH>
+		    <G? ,TAG-NAME-LENGTH 6>>
+		<PRINTI " Rt">)
+	       (T
+		<PRINTI " Route">)> 
+	 <PRINTT ,WPRINT-EBUF
+		 <- <- ,NAME-WIDTH
+		       <+ ,TAG-NAME-LENGTH 6>>
+		    1>>>
+
+<ROUTINE ILLEGAL-COMMAND-OBJECT? (PCM PCF)
+	 <G? <+ .PCM <* <- .PCF 2> 5>> <GET ,O-TABLE 0>>>
+
+<ROUTINE COMMAND-OBJECT-INPUT ("OPTIONAL" (PCM 1) (PCF 2)
+			       "AUX" CHR NPCM NPCF MNPCF (CLICK <>))
+	 <SET MNPCF .PCF>
+	 <BOLD-OBJECT-CURSOR .PCM .PCF>
+	 <REPEAT ()
+		 <COND (<OR .CLICK <EQUAL? <SET CHR <GETCHR>> 13>>
+			<BOLD-OBJECT-CURSOR .PCM .PCF>
+			<PROCESS-COMMAND-OBJECT .PCM .PCF>
+			<RETURN>)
+		       (<EQUAL? .CHR ,SINGLE-CLICK ,DOUBLE-CLICK>
+			<COND (<LOCATE-MOUSE>
+			       <SET NPCM <GET ,MOUSETBL 0>>
+			       <SET NPCF <GET ,MOUSETBL 1>>
+			       <COND (<OR <L? .NPCM 1>
+					  <G? .NPCM 5>
+					  <L? .NPCF .MNPCF>
+					  <ILLEGAL-COMMAND-OBJECT? .NPCM
+								   .NPCF>>
+				      <SOUND 1>)
+				     (T
+				      <NORMAL-OBJECT-CURSOR .PCM .PCF>
+				      ;"New 7/15"
+				      <SET PCM .NPCM>
+				      <SET PCF .NPCF>
+				      <SET CLICK T>)>)
+			      (T
+			       <SOUND 1>)>)
+		       (<EQUAL? .CHR ,DOWN-ARROW>
+			<COND (<OR <EQUAL? .PCM 5>
+				   <ILLEGAL-COMMAND-OBJECT? <+ .PCM 1> .PCF>>
+			       <SOUND 1>)
+			      (T
+			       <NORMAL-OBJECT-CURSOR .PCM .PCF>
+			       <SET PCM <+ .PCM 1>>
+			       <BOLD-OBJECT-CURSOR .PCM .PCF>)>)
+		       (<EQUAL? .CHR ,UP-ARROW>
+			<COND (<EQUAL? .PCM 1>
+			       <SOUND 1>)
+			      (T
+			       <NORMAL-OBJECT-CURSOR .PCM .PCF>
+			       <SET PCM <- .PCM 1>>
+			       <BOLD-OBJECT-CURSOR .PCM .PCF>)>)
+		       (<EQUAL? .CHR ,LEFT-ARROW>
+			<COND (<EQUAL? .PCF .MNPCF>
+			       <SOUND 1>)
+			      (T
+			       <NORMAL-OBJECT-CURSOR .PCM .PCF>
+			       <SET PCF <- .PCF 1>>
+			       <BOLD-OBJECT-CURSOR .PCM .PCF>)>)
+		       (<EQUAL? .CHR ,RIGHT-ARROW>
+			<COND (<OR <EQUAL? .PCF 3>
+				   <ILLEGAL-COMMAND-OBJECT? .PCM <+ .PCF 1>>>
+			       <SOUND 1>)
+			      (T
+			       <NORMAL-OBJECT-CURSOR .PCM .PCF>
+			       <SET PCF <+ .PCF 1>>
+			       <BOLD-OBJECT-CURSOR .PCM .PCF>)>)
+		       (<OBJECT-KBD-COMMAND? .CHR .MNPCF>
+			<NORMAL-OBJECT-CURSOR .PCM .PCF>
+			<SET PCM <GET ,MOUSETBL 0>>
+			<SET PCF <GET ,MOUSETBL 1>>
+			<BOLD-OBJECT-CURSOR .PCM .PCF>
+			<SET CLICK T>)
+		       (T <SOUND 1>)>>>
+
+<GLOBAL ACTION-OBJECT <>>
+
+<ROUTINE PROCESS-COMMAND-OBJECT (PCM PCF)
+	 <SETG ACTION-OBJECT <GET ,O-TABLE <+ .PCM <* <- .PCF 2> 5>>>>>
+
+<ROUTINE BOLD-OBJECT-CURSOR (PCM PCF "AUX" X Y)
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <GCURSET <SET Y <+ <- ,COMMAND-START-LINE 1> .PCM>>
+		  <SET X <+ ,CHR-COMMAND-COLUMN
+			    <* ,COMMAND-WIDTH <- .PCF 1>>>>>
+	 <HLIGHT ,H-BOLD>
+	 <PRINT-DESC <GET ,O-TABLE <+ .PCM <* <- .PCF 2> 5>>>>
+	 <HLIGHT ,H-NORMAL>
+	 <GCURSET .Y .X>
+	 <IF-YFLAG <SELECT-SCREEN 2>>>
+
+<ROUTINE NORMAL-OBJECT-CURSOR (PCM PCF "AUX" X Y)
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <GCURSET <SET Y <+ <- ,COMMAND-START-LINE 1> .PCM>>
+		  <SET X <+ ,CHR-COMMAND-COLUMN
+			    <* ,COMMAND-WIDTH <- .PCF 1>>>>>
+	 <PRINT-DESC <GET ,O-TABLE <+ .PCM <* <- .PCF 2> 5>>>>
+	 <IF-YFLAG <SELECT-SCREEN 2>>>
+
+<ROUTINE BOLD-PARTY-CURSOR (PCM PCF "AUX" X Y CMD)
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <GCURSET <SET Y <+ <- ,COMMAND-START-LINE 1> .PCM>>
+		  <SET X ,PARTY-COMMAND-COLUMN>>
+	 <PRINTT ,WPRINT-EBUF <- ,COMMAND-WIDTH 1>>
+	 <GCURSET .Y .X>
+	 <SET CMD <GET ,PARTY-COMMANDS .PCM>>
+	 <HLIGHT ,H-BOLD>
+	 <COND (<AND <EQUAL? .CMD ,TAG-ROUTE-COMMAND>
+		     <G? ,TAG-NAME-LENGTH 0>>
+		<TAG-ROUTE-PRINT>)
+	       (T
+		<PRINT-COMMAND .CMD>)>
+	 <HLIGHT ,H-NORMAL>
+	 <GCURSET .Y .X>
+	 <IF-YFLAG <SELECT-SCREEN 2>>
+	 .CMD>
+
+<ROUTINE NORMAL-PARTY-CURSOR (PCM PCF "AUX" CMD Y X)
+	 <IF-YFLAG <SELECT-SCREEN 1>>
+	 <GCURSET <SET Y <+ <- ,COMMAND-START-LINE 1> .PCM>>
+		  <SET X ,PARTY-COMMAND-COLUMN>>
+	 <PRINTT ,WPRINT-EBUF <- ,COMMAND-WIDTH 1>>
+	 <GCURSET .Y .X>
+	 <SET CMD <GET ,PARTY-COMMANDS .PCM>>
+	 <COND (<AND <EQUAL? .CMD ,TAG-ROUTE-COMMAND>
+		     <G? ,TAG-NAME-LENGTH 0>>
+		<TAG-ROUTE-PRINT>)
+	       (T
+		<PRINT-COMMAND .CMD>)>
+	 <IF-YFLAG <SELECT-SCREEN 2>>>
+
+<GLOBAL OPTION-ACTOR 0>
+<GLOBAL OPTION-PCM 0>
+<GLOBAL OPTION-OLD-MODE 0>
+
+<ROUTINE CIT (CHR CMD1 "OPTIONAL" (CMD2 ,NUL-COMMAND) (CMD3 ,NUL-COMMAND))
+	 <CHANGE-CIT .CHR 1 .CMD1 <>>
+	 <CHANGE-CIT .CHR 2 .CMD2 <>>
+	 <CHANGE-CIT .CHR 3 .CMD3>
+	 <RTRUE>>
+
+<ROUTINE CHANGE-CIT (CHR POS CMD "OPTIONAL" (PRT T))
+	 <COND (<IN-PARTY? .CHR>
+		<PUT <GET ,CHARACTER-INPUT-TBL <PARTY-PCM .CHR>>
+		     <- .POS 1>
+		     .CMD>
+		<COND (.PRT <PRINT-CHARACTER-COMMANDS>)>
+		<RTRUE>)>>
+
+<ROUTINE PARTY-PCM (CHR "AUX" (CNT 1) (MAX <GET ,PARTY 0>))
+	 <REPEAT ()
+		 <COND (<EQUAL? <GET ,PARTY .CNT> .CHR>
+			<RETURN .CNT>)
+		       (<G? <SET CNT <+ .CNT 1>> .MAX>
+			<RFALSE>)>>>
+			
+<ROUTINE OPTION (CHR "OPTIONAL" (CMD1 ,NUL-COMMAND)
+		 		(CMD2 ,NUL-COMMAND)
+		    		(CMD3 ,NUL-COMMAND)
+		     "AUX" SC)
+	 <SETG OPTION-ACTOR .CHR>
+	 <SETG OPTION-PCM <PARTY-PCM .CHR>>
+	 <COND (<NOT <EQUAL? ,PARTY-MODE ,OPTION-MODE>>
+		<SETG OPTION-OLD-MODE ,PARTY-MODE>)>
+	 <SET SC <GETPT .CHR ,P?OPTION-COMMANDS>>
+	 <PUT .SC 0 .CMD1>
+	 <PUT .SC 1 .CMD2>
+	 <PUT .SC 2 .CMD3>
+	 <MODE ,OPTION-MODE>
+	 <NEW-DEFAULT <PARTY-PCM .CHR> 1>>
+
+<ROUTINE END-OPTION ("OPTIONAL" (M T) "AUX" SC)
+	 <COND (<NOT ,OPTION-ACTOR> <RFALSE>)>
+	 <SET SC <GETPT ,OPTION-ACTOR ,P?OPTION-COMMANDS>>
+	 <PUT .SC 0 ,NUL-COMMAND>
+	 <PUT .SC 1 ,NUL-COMMAND>
+	 <PUT .SC 2 ,NUL-COMMAND>
+	 <SETG OPTION-ACTOR <>>
+	 <COND (.M <MODE ,OPTION-OLD-MODE>)>
+	 <SMART-DEFAULT>>	 	 
+
+;"Objects (temporary)"
+
+<GLOBAL O-TABLE <TABLE 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0>>
+
+<OBJECT OBJ-ROPE
+	(SDESC "rope")
+	(KBD %<ASCII !\R>)
+	(LOC INVENTORY)
+	(FLAGS DONT-EXAMINE DONT-DROP)> 
+
+<ROUTINE CHARACTER-HERE? (CHR)
+	 <COND (<AND <IN-PARTY? .CHR>
+		     <OR <NOT ,SUBGROUP-MODE>
+			 <FSET? .CHR ,SUBGROUP>>>
+		<RTRUE>)>>
+
+<ROUTINE FOOL-DROP ()
+	 <COND (<CHARACTER-HERE? ,PRAXIX>
+		<TELL
+"Trying to lighten my load, I started to drop the " AO " on the ground.
+\"Fool!\" Praxix said, seeing what I was attempting. \"We shall be
+needing such things. Now make yourself useful before I ">
+		<TELL <PICK-ONE ,PRAXIX-FOOL-TBL>>
+		<TELL "!\" I was not sure whether such a thing was possible,
+but it seemed unwise to take chances.">)
+	       (T
+		<TELL
+"I thought to lighten my load by dropping the " AO ", but felt that
+it would serve no purpose save giving Praxix an excuse to fry me in
+boiling oil when he found out.">)>>
+
+<GLOBAL PRAXIX-FOOL-TBL
+	<LTABLE 0
+	       "turn you into a toad"
+	       "fry you"
+	       "cast you into the sky and make you dinner for vultures">>
+
+<OBJECT INVENTORY>
+
+<GLOBAL HERE <>>
+
+<ROUTINE MAKE-SUBGROUP (CHR "OPTIONAL" (CHR2 <>) (CHR3 <>))
+	 <CLEAR-SUBGROUP>
+	 <SETG SUBGROUP-MODE T>
+	 <FSET .CHR ,SUBGROUP>
+	 <COND (.CHR2 <FSET .CHR2 ,SUBGROUP>)>
+	 <COND (.CHR3 <FSET .CHR3 ,SUBGROUP>)>
+	 <RTRUE>>
+
+<ROUTINE CLEAR-SUBGROUP ("AUX" (CNT 0))
+	 <SETG SUBGROUP-MODE <>>
+	 <SETG UPDATE-FLAG T>
+	 <REPEAT ()
+		 <COND (<G? <SET CNT <+ .CNT 1>> ,PARTY-MAX>
+			<RETURN>)
+		       (T
+			<FCLEAR <GET ,PARTY .CNT> ,SUBGROUP>)>>>
+
+<ROUTINE MOVE-TO (RM "OPTIONAL" (STR <>) (GC <>) (EF? T) "AUX" MD)
+	 <COND (.EF? <CLEAR-BUSY>)>
+	 <COND (<NOT .GC> <SETG UPDATE-FLAG T>)>
+	 <COND (,DONT-CAST-FLAG
+		<SETG DONT-CAST-FLAG <>>
+		<FCLEAR ,HERE ,DONT-CAST>)>
+	 <COND (.EF? <APPLY <GETP ,HERE ,P?EXIT>>)>
+	 <COND (<FSET? .RM ,PROVISIONER>
+		<SET MD ,PROVISION-MODE>)
+	       (<FSET? ,HERE ,PROVISIONER>
+		<SET MD ,TRAVEL-MODE>)
+	       (<NOT <EQUAL? ,PARTY-MODE ,TRAVEL-MODE>>
+		<SET MD ,TRAVEL-MODE>)>
+	 <SETG HERE .RM>
+	 <COND (.MD <MODE .MD <> <NOT .EF?>>)>
+	 <COND (.STR <TELL .STR>)>
+	 <FILL-PARTY-COMMANDS .RM
+			      <COND (.GC ,CANCEL-COMMAND)
+				    (T ,GAME-COMMAND)>>
+	 <COND (.EF?
+		<APPLY <GETP .RM ,P?ENTER>>
+		<RESTORE-SPELLS>)>
+	 <PRINT-COLUMNS T>
+	 <SMART-DEFAULT>
+	 <COND (<AND .EF?
+		     <SET MD <GETP ,HERE ,P?GRAPHIC>>
+		     <NOT <GETP ,SCENE-OBJECT ,P?GRAPHIC>>>
+		<GRAPHIC .MD>)>
+	 .RM>
+
+<ROUTINE SMART-DEFAULT ()
+	 <COND (<EQUAL? ,PARTY-MODE ,OPTION-MODE>
+		<NEW-DEFAULT <PARTY-PCM ,OPTION-ACTOR> 1>)
+	       (<EQUAL? <GET ,PARTY-COMMANDS 1> ,NUL-COMMAND>
+		<COND (,SUBGROUP-MODE
+		       <NEW-DEFAULT <FIRST-SUBGROUP> 1>)
+		      (T
+		       <NEW-DEFAULT <FIRST-PARTY> 1>)>)
+	       (T
+		<NEW-DEFAULT>)>>
+
+<ROUTINE FILL-PARTY-COMMANDS (RM "OPTIONAL" (GC ,GAME-COMMAND) "AUX" T O)
+	 <COPYT <SET T <GETPT .RM ,P?TRAVEL-COMMANDS>>
+		<REST ,PARTY-COMMANDS 2>
+		<SET O <PTSIZE .T>>>
+	 <COND (<L? .O 8>
+		<PUT ,PARTY-COMMANDS 4 ,NUL-COMMAND>)>
+	 <PUT ,PARTY-COMMANDS 5 .GC>>
+
+<ROUTINE ADD-PARTY-COMMAND (CMD "OPTIONAL" (DEF? T) "AUX" (CNT 0))
+	 <CHANGE-PARTY-COMMAND ,NUL-COMMAND .CMD .DEF?>>
+
+<ROUTINE NUL-PARTY-COMMAND (CMD)
+	 <CHANGE-PARTY-COMMAND .CMD ,NUL-COMMAND <>>>
+
+<ROUTINE CHANGE-PARTY-COMMAND (OCMD NCMD "OPTIONAL" (DEF? T) "AUX" (CNT 0))
+	 <REPEAT ()
+		 <COND (<G? <SET CNT <+ .CNT 1>> 5> <RETURN>)
+		       (<EQUAL? <GET ,PARTY-COMMANDS .CNT> .OCMD>
+			<PUT ,PARTY-COMMANDS .CNT .NCMD>
+			<PRINT-COLUMNS T>
+			;<COND (.DEF? <NEW-DEFAULT .CNT -1>)>
+			<RTRUE>)>>>
+
+<ROUTINE REMOVE-PARTY-COMMAND (CMD "AUX" (CNT 0))
+	 <REPEAT ()
+		 <COND (<G? <SET CNT <+ .CNT 1>> 4>
+			<RFALSE>)
+		       (<EQUAL? <GET ,PARTY-COMMANDS .CNT> .CMD>
+			<COPYT <REST ,PARTY-COMMANDS <* <+ .CNT 1> 2>>
+			       <REST ,PARTY-COMMANDS <* .CNT 2>>
+			       <* <- 4 .CNT> 2>>
+			<PUT ,PARTY-COMMANDS 4 ,NUL-COMMAND>
+			<PRINT-COLUMNS T>
+			<SMART-DEFAULT>
+			<RTRUE>)>>>
+
+<ROUTINE NEW-DEFAULT ("OPTIONAL" (PCM 1) (PCF -1))
+	 <SETG NEW-DEFAULT-FLAG T>
+	 <PUT ,MOUSETBL 0 .PCM>
+	 <PUT ,MOUSETBL 1 .PCF>>
+
+<ROUTINE TRAVEL-COMMANDS (OBJ "OPTIONAL" (CMD1 ,NUL-COMMAND)
+			  		 (CMD2 ,NUL-COMMAND)
+					 (CMD3 ,NUL-COMMAND)
+					 (CMD4 ,NUL-COMMAND)
+			      "AUX" TBL)
+	 <SET TBL <GETPT .OBJ ,P?TRAVEL-COMMANDS>>
+	 <PUT .TBL 0 .CMD1>
+	 <PUT .TBL 1 .CMD2>
+	 <PUT .TBL 2 .CMD3>
+	 <COND (<G? <PTSIZE .TBL> 6>
+		<PUT .TBL 3 .CMD4>)>
+	 <UPDATE-CHECK .OBJ .TBL>
+	 <RTRUE>>
+
+<ROUTINE UPDATE-CHECK (OBJ TBL)
+	 <COND (<EQUAL? .OBJ ,HERE ,SCENE-OBJECT>
+		<COPYT .TBL
+		       <REST ,PARTY-COMMANDS 2>
+		       <PTSIZE .TBL>>
+		<PRINT-COLUMNS T>)
+	       (<IN-PARTY? .OBJ>
+		<SETG UPDATE-FLAG T>)>>
+
+<ROUTINE CHANGE-TRAVEL-COMMAND (CHR OCMD NCMD "AUX" TBL (CNT -1) CMD)
+	 <SET TBL <GETPT .CHR ,P?TRAVEL-COMMANDS>>
+	 <REPEAT ()
+		 <COND (<G? <SET CNT <+ .CNT 1>> 3>
+			<RFALSE>)
+		       (<EQUAL? <SET CMD <GET .TBL .CNT>> .OCMD>
+			<PUT .TBL .CNT .NCMD>
+			<COND (<EQUAL? .CHR ,HERE>
+			       <FILL-PARTY-COMMANDS .CHR>
+			       <PRINT-COLUMNS T>)
+			      (T
+			       <SETG UPDATE-FLAG T>)>
+			<RTRUE>)
+		       (<EQUAL? .CMD .NCMD>
+			<RFALSE>)>>>
+
+<ROUTINE ADD-TRAVEL-COMMAND (CHR CMD)
+	 <CHANGE-TRAVEL-COMMAND .CHR ,NUL-COMMAND .CMD>> 
+
+<ROUTINE REMOVE-TRAVEL-COMMAND (CHR CMD "AUX" TBL (CNT -1) SIZ)
+	 <SET TBL <GETPT .CHR ,P?TRAVEL-COMMANDS>>
+	 <SET SIZ <- </ <PTSIZE .TBL> 2> 1>>
+	 <REPEAT ()
+		 <COND (<G? <SET CNT <+ .CNT 1>> .SIZ>
+			<RFALSE>)
+		       (<EQUAL? <GET .TBL .CNT> .CMD>
+			<COND (<NOT <EQUAL? .SIZ .CNT>>
+			       <COPYT <REST .TBL <* <+ .CNT 1> 2>>
+				      <REST .TBL <* .CNT 2>>
+				      <* <- .SIZ .CNT> 2>>)>
+			<PUT .TBL .SIZ ,NUL-COMMAND>
+			<UPDATE-CHECK .CHR .TBL>
+			<COND (<AND <EQUAL? .CHR ,HERE ,SCENE-OBJECT>
+				    <EQUAL? ,ACTION .CMD>>
+			       <SMART-DEFAULT>)>
+			<RTRUE>)>>>
+
+<GLOBAL ACTION-PRSI <>>
+
+<GLOBAL PRSI-PREP <>>
+
+<ROUTINE PRSI-INPUT (STR "AUX" TMP OBJ)
+	 <SETG PRSI-PREP .STR>
+	 <SET OBJ ,ACTION-OBJECT>
+	 <COND (<G? <SET TMP <GET ,O-TABLE 5>> 0>
+		<SET TMP <+ .TMP 1>>
+		<PUT ,O-TABLE 5 .TMP>
+		<PUT ,O-TABLE <+ .TMP 5> ,CANCEL-OBJECT>
+		<CLEAR-FIELDS>
+		<SET TMP <PARTY-PCM ,ACTOR>>
+		<BOLD-CURSOR .TMP 1 <GET-COMMAND ,ACTION>>
+		<COND (<EQUAL? .TMP 5>
+		       <SET TMP 4>)>
+		<BOLD-CURSOR .TMP
+			     2
+			     <GET-DESC ,ACTION-OBJECT>>
+		<BOLD-CURSOR <+ .TMP 1>
+			     2
+			     .STR>
+		<PRINT-COLUMNS <> T>
+		<COMMAND-OBJECT-INPUT 1 3>
+		<COND (<EQUAL? ,ACTION-OBJECT ,CANCEL-OBJECT>
+		       <SETG ACTION ,NUL-COMMAND>
+		       <RFALSE>)
+		      (T
+		       <SETG ACTION-PRSI ,ACTION-OBJECT>
+		       <SETG ACTION-OBJECT .OBJ>
+		       <RTRUE>)>)>>
+
+;"Clock stuff, for now"
+
+<OBJECT CLOCK-QUEUE>
+
+<ROUTINE RUN-CLOCK ("AUX" OBJ NXT CNT)
+	 <SET OBJ <FIRST? ,CLOCK-QUEUE>>
+	 <REPEAT ()
+		 <COND (<NOT .OBJ> <RTRUE>)
+		       (T
+			<SET NXT <NEXT? .OBJ>>
+			<SET CNT <- <GETP .OBJ ,P?TIME> 1>>
+			<COND (<L? .CNT 1>
+			       <APPLY <GETP .OBJ ,P?ACTION>>
+			       <COND (<ZERO? .CNT> <REMOVE .OBJ>)>)
+			      (T
+			       <PUTP .OBJ ,P?TIME .CNT>)>
+			<SET OBJ .NXT>)>>> 
+	 
+<ROUTINE QUEUE (OBJ TIM)
+	 <MOVE .OBJ ,CLOCK-QUEUE>
+	 <PUTP .OBJ ,P?TIME <+ .TIM 1>>>

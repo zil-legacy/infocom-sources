@@ -1,0 +1,77 @@
+"PIC for
+				Library
+	(c) Copyright 1987 Infocom, Inc. All Rights Reserved."
+
+<CONSTANT YX-TBL <TABLE 0 0>>
+
+<ROUTINE TITLE-SCREEN ()
+	 <CLEAR -1>
+	 <PICINF ,P-TITLE ,YX-TBL>
+	 <SETG CURRENT-SPLIT ,TITLE-SCREEN-PICTURE>
+	 <SPLIT <GET ,YX-TBL 0>>
+	 <SCREEN 1>
+	 <DISPLAY ,P-TITLE 1 1>
+	 ;<CENTER-PIC ,P-TITLE>
+	 <SCREEN 0>>
+
+;<ROUTINE CENTER-PIC (P "AUX" X (CENTER </ ,WIDTH 2>))
+	 <CPICINF .P ,YX-TBL>
+	 <SET X <GET ,YX-TBL 1>>
+	 <CDISPLAY .P 1 <- .CENTER </ .X 2>>>>
+
+<CONSTANT WIN-TBL <TABLE 0 0 0>>
+
+<ROUTINE YCEILING (Y)
+	 <* ,FONT-Y </ <+ .Y <- ,FONT-Y 1>> ,FONT-Y>>>
+
+<ROUTINE XCEILING (X)
+	 <* ,FONT-X </ <+ .X <- ,FONT-X 1>> ,FONT-X>>>
+
+<CONSTANT WTBL <LTABLE 0>>
+
+<ROUTINE WINPROP (WIN PROP)
+	 <WINGET .WIN ,WTBL .PROP>
+	 <GET ,WTBL 1>>
+
+<ROUTINE MARGINAL-PIC (P "OPT" (RIGHT? T) "AUX" X Y YLEFT HIGH YLOC
+		       WWIDTH)
+	 <PICINF .P ,YX-TBL>
+	 ;"Integral character height of the picture"
+	 <SET Y <YCEILING <GET ,YX-TBL 0>>>
+	 ;"Round up to integral character width"
+	 <SET X <XCEILING <GET ,YX-TBL 1>>>
+	 <SET HIGH <WINPROP ,S-TEXT ,WHIGH>>
+	 <SET WWIDTH <WINPROP ,S-TEXT ,WWIDE>>
+	 <SET YLEFT <- <WINPROP ,S-TEXT ,WYPOS> 1>>
+	 <SET YLEFT <- .HIGH .YLEFT>>
+	 <COND (<G? .Y .YLEFT>
+		<CURGET ,YX-TBL>
+		<SET YLOC <GET ,YX-TBL 0>>
+		<SET YLEFT <YCEILING <- .Y .YLEFT>>>
+		<SCROLL ,S-TEXT .YLEFT>
+		<SET YLOC <- .YLOC .YLEFT>>
+		<COND (<L=? .YLOC 0> <SET YLOC 1>)>
+		<CURSET .YLOC <GET ,YX-TBL 1>>)>
+	 <SET YLEFT <+ .Y <WINPROP ,S-TEXT ,WYPOS>>>
+	 <DISPLAY .P 0 <COND (.RIGHT? <- .WWIDTH .X>)
+			     (T 1)>>
+	 <SET X <+ .X ,FONT-X>>
+	 <COND (<G=? .X .WWIDTH>
+		<CURSET .YLEFT 1>
+		<INPUT 1>
+		<COND (<L=? <- .HIGH .YLEFT> ,FONT-Y>
+		       <SCROLL ,S-TEXT ,FONT-Y>)>)
+	       (T
+		<COND (.RIGHT?
+		       <MARGIN 0 .X>)
+		      (T
+		       <MARGIN .X 0>)>
+		<SET Y </ .Y ,FONT-Y>>
+		<PUTB ,P-INBUF 0 </ <- .WWIDTH .X> ,FONT-X>>
+		<PUT ,WIN-TBL 0 2>
+		<PUT ,WIN-TBL 1 ,RESET-MARGIN>
+		<PUT ,WIN-TBL 2 .Y ;<+ .Y 1>>
+		<WINPUT 0 ,WIN-TBL ,WCRFUNC>)>>
+
+<ROUTINE RESET-MARGIN ()
+	 <MARGIN 0 0>>

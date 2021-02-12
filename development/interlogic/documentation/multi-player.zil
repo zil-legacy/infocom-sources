@@ -1,0 +1,176 @@
+"EXTENDED ZIPTEST"
+
+<VERSION XZIP>	;XZIP
+
+<SINGLE-FILE? T>
+
+<SHARE-OBJECTS?>
+
+<CONSTANT ST-ACTIVE 0>
+<CONSTANT ST-STATUS 1>
+<CONSTANT STAT-JUST-JOINED -1>
+<CONSTANT STAT-SUSPENDED -2>
+<CONSTANT STAT-JUST-REJOINED -3>
+<CONSTANT STAT-IDLE 0>
+<CONSTANT STAT-MOVE-PENDING 1>
+
+<CONSTANT ST-MOVE 2>
+
+<CONSTANT SHARED-TABLE <TABLE (SHARED)
+			      <TABLE 0 0 0>
+			      <TABLE 0 0 0>
+			      <TABLE 0 0 0>
+			      <TABLE 0 0 0>>>
+
+<CONSTANT M-JOIN 1>
+<CONSTANT M-SUSP 2>
+<CONSTANT M-REJO 3>
+<CONSTANT M-QUIT 4>
+<CONSTANT M-MOVE 5>
+
+<ROUTINE MULTI-PLAYER ("AUX" PLMAX (SRV? <>))
+  <COND (<SERVER 0>
+	 <SET SRV? T>)
+	(T
+	 <TELL "Become server?: ">
+	 <COND (<EQUAL? <INPUT 1> %<ASCII !\Y> %<ASCII !\y>>
+		<SET SRV? T>)>)>
+  <COND (.SRV?
+	 <ZCRLF>
+	 <COND (<SET PLMAX <SERVER 4>>
+		<TELL "Server started; " N .PLMAX " player limit." CR>
+		<DO-SERVER>)>)
+	(<SET PLMAX <SEND ,M-JOIN>>
+	 <TELL "Joined game; ID is " N .PLMAX "." CR>
+	 <DO-USER .PLMAX>)>>
+
+<CONSTANT SERVER-TABLE <TABLE 0 0>>
+
+<GLOBAL NPLAYERS 0>
+<GLOBAL NMOVES 0>
+<GLOBAL INPUT-ABORT? <>>
+
+<ROUTINE I-SERVER ("AUX" TEMP)
+  <SETG ELAPSED <+ ,ELAPSED <- <SET TEMP <RTIME <>>> ,LAST-TIME>>>
+  <SETG LAST-TIME .TEMP>
+  <PRINTN </ ,ELAPSED 10>>
+  <TELL " ">
+  <SETG INPUT-ABORT? T>
+  T>
+
+<GLOBAL ELAPSED 0>
+<GLOBAL LAST-TIME 0>
+
+<ROUTINE DO-SERVER ("AUX" ETIME IP)
+  <SETG NMOVES 0>
+  <SETG LAST-TIME <RTIME T>>
+  <SETG ELAPSED 0>
+  <REPEAT ()
+    <SETG INPUT-ABORT? <>>
+    <COND (<0? ,NPLAYERS>
+	   <SET IP <INPUT 6 <> <> ,SERVER-TABLE>>)
+	  (T
+	   <SET IP <INPUT 6 100 I-SERVER ,SERVER-TABLE>>)>
+    <COND (<NOT ,INPUT-ABORT?>
+	   <PROCESS-SERVER-MESSAGE>
+	   <COND (<==? ,NMOVES ,NPLAYERS>
+		  <PROCESS-MOVES>
+		  <SETG NMOVES 0>
+		  <SETG LAST-TIME <RTIME T>>
+		  <SETG LAST-TIME 0>
+		  <SETG ELAPSED 0>)>)
+	  (<G=? ,ELAPSED 600>
+	   <TELL CR "Timeout invoked." CR>
+	   <PROCESS-MOVES>
+	   <SETG LAST-TIME <RTIME T>>
+	   <SETG LAST-TIME 0>
+	   <SETG ELAPSED 0>)>>>
+
+<ROUTINE PROCESS-SERVER-MESSAGE ("AUX" (TYPE <ZGET ,SERVER-TABLE 0>)
+				       (ID <ZGET ,SERVER-TABLE 1>)
+				       (TAB <ZGET ,SHARED-TABLE <- .ID 1>>))
+  <COND (<==? .TYPE ,M-JOIN>
+	 ; "Join message"
+	 <ZPUT .TAB ,ST-ACTIVE -1>
+	 <COND (<0? ,NMOVES>
+		<SERVER <- .ID>>
+		<ZPUT .TAB ,ST-STATUS ,STAT-IDLE>
+		<SETG NPLAYERS <+ ,NPLAYERS 1>>)
+	       (T
+		<ZPUT .TAB ,ST-STATUS ,STAT-JUST-JOINED>)>)
+	(<==? .TYPE ,M-SUSP>
+	 <ZPUT .TAB ,ST-STATUS ,STAT-SUSPENDED>
+	 <SETG NPLAYERS <- ,NPLAYERS 1>>)
+	(<==? .TYPE ,M-REJO>
+	 <COND (<0? ,NMOVES>
+		<SERVER <- .ID>>
+		<SETG NPLAYERS <+ ,NPLAYERS 1>>
+		<ZPUT .TAB ,ST-STATUS ,STAT-IDLE>)
+	       (T
+		<ZPUT .TAB ,ST-STATUS ,STAT-JUST-REJOINED>)>)
+	(<==? .TYPE ,M-MOVE>
+	 <ZPUT .TAB ,ST-STATUS ,STAT-MOVE-PENDING>
+	 <SETG NMOVES <+ ,NMOVES 1>>)
+	(<==? .TYPE ,M-QUIT>
+	 <COND (<L? <SETG NPLAYERS <- ,NPLAYERS 1>> 0>
+		<SETG NPLAYERS 0>)>
+	 <ZPUT .TAB ,ST-ACTIVE 0>)>>
+
+<ROUTINE PROCESS-MOVES ("AUX" (CT 0) TAB ID)
+  <REPEAT (STAT)
+    <SET TAB <ZGET ,SHARED-TABLE .CT>>
+    <COND (<AND <NOT <0? <ZGET .TAB ,ST-ACTIVE>>>
+		<OR <==? <SET STAT <ZGET .TAB ,ST-STATUS>> ,STAT-IDLE>
+		    <==? .STAT ,STAT-MOVE-PENDING>>>
+	   ; "Active player"
+	   <TELL "Move for player " N <SET ID <+ .CT 1>> " is ">
+	   <COND (<==? .STAT ,STAT-MOVE-PENDING>
+		  <PRINTC <ZGET .TAB 2>>)
+		 (T
+		  <ZPUT .TAB 2 %<ASCII !\0>>
+		  <TELL "(defaulted) 0">)>
+	   <TELL "." CR>
+	   <DIROUT 6 .ID>
+	   <COND (<==? .STAT ,STAT-MOVE-PENDING>
+		  <TELL "Your move is ">
+		  <HLIGHT 2>
+		  <PRINTC <ZGET .TAB 2>>
+		  <HLIGHT 0>)
+		 (T
+		  <TELL "Your move was defaulted to 0">)>
+	   <TELL "." CR>
+	   <DIROUT -6>)>
+    <COND (<G? <SET CT <+ .CT 1>> 3>
+	   <RETURN>)>>
+  <SET CT 0>
+  <REPEAT (STAT)
+    <COND (<NOT <0? <ZGET <SET TAB <ZGET ,SHARED-TABLE .CT>> ,ST-ACTIVE>>>
+	   <COND (<N==? <SET STAT <ZGET .TAB ,ST-STATUS>> ,STAT-SUSPENDED>
+		  <SERVER <- <+ .CT 1>>>
+		  <ZPUT .TAB ,ST-STATUS ,STAT-IDLE>)>)>
+    <COND (<G? <SET CT <+ .CT 1>> 3> <RETURN>)>>>
+
+<GLOBAL MY-ID 0>
+<GLOBAL MY-TAB <>>
+
+<ROUTINE DO-USER (ID)
+  <SETG MY-ID .ID>
+  <SETG MY-TAB <ZGET ,SHARED-TABLE <- ,MY-ID 1>>>
+  <PRINTMOVE>
+  <REPEAT (CHR)
+    <TELL CR "Move: ">
+    <ZPUT ,MY-TAB ,ST-MOVE <SET CHR <INPUT 1>>>
+    <PRINTC .CHR>
+    <ZCRLF>
+    <COND (<==? .CHR %<ASCII !\Q>>
+	   <SEND ,M-QUIT>
+	   <QUIT>)
+	  (<==? .CHR %<ASCII !\S>>
+	   <SEND ,M-SUSP>
+	   <INPUT 1>
+	   <SEND ,M-REJO>
+	   <PRINTMOVE>)
+	  (T
+	   <COND (<==? <SEND ,M-MOVE> 2>
+		  <TELL "Move rejected due to timeout." CR>)>
+	   <PRINTMOVE>)>>>

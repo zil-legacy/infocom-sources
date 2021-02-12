@@ -1,0 +1,35 @@
+<FILE-FLAGS MDL-ZIL?>
+
+<SETG MY-ID 0>
+<SETG MY-TAB <>>
+
+<DEFINE BOGGLE-USER ()
+  <COND (<SETG MY-ID <SEND ,M-JOIN>>
+	 <SETG MULTI-PLAYER? T>
+	 <SETG MY-TAB <ZGET ,STATUS-TABLE <- ,MY-ID 1>>>
+	 <LOWCORE-TABLE USERNAME 8 <ST-NAME ,MY-TAB>>
+	 <SETG MY-BUFFERS <ST-BUFS ,MY-TAB>>
+	 <SPLIT 22>
+	 <PRINTMOVE>
+	 <REPEAT ()
+	   <GET-TRAY>
+	   <ST-BUFS-USED ,MY-TAB ,BUFS-USED>
+	   <ST-USER-STATUS ,MY-TAB ,STU-BOARD-IN>
+	   <COND (<==? <SEND ,M-MOVE> 2>
+		  <TELL "You were too late." CR>
+		  <PRINTMOVE>
+		  <AGAIN>)>
+	   <PRINTMOVE>
+	   ; "Challenge stuff would go here"
+	   <ST-USER-STATUS ,MY-TAB ,STU-NOT-CHALLENGING>
+	   <SEND ,M-MOVE>
+	   <PRINTMOVE>
+	   <SPLIT 22>
+	   <TELL "Play again? ">
+	   <COND (<NOT <EQUAL? <INPUT 1> %<ASCII !\Y> %<ASCII !\y>>>
+		  <SEND ,M-QUIT>
+		  <QUIT>)>
+	   <ST-USER-STATUS ,MY-TAB ,STU-WANT-GAME>
+	   <SEND ,M-MOVE>
+	   <DISPLAY-SCORES>
+	   <PRINTMOVE>>)>>

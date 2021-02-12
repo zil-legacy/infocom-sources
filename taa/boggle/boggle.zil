@@ -1,0 +1,516 @@
+<GLOBAL NEXT-CUBE4
+	<TABLE (SHARED)
+	 <LTABLE (BYTE)
+		  1  2  3  4
+		  5  6  7  8
+		  9 10 11 12
+		 13 14 15 16>
+	 <LTABLE (BYTE) 2 5 6>
+	 <LTABLE (BYTE) 1 3 5 6 7>
+	 <LTABLE (BYTE) 2 4 6 7 8>
+	 <LTABLE (BYTE) 3 7 8>
+	 <LTABLE (BYTE) 1 2 6 9 10>
+	 <LTABLE (BYTE) 1 2 3 5 7 9 10 11>
+	 <LTABLE (BYTE) 2 3 4 6 8 10 11 12>
+	 <LTABLE (BYTE) 3 4 7 11 12>
+	 <LTABLE (BYTE) 5 6 10 13 14>
+	 <LTABLE (BYTE) 5 6 7 9 11 13 14 15>
+	 <LTABLE (BYTE) 6 7 8 10 12 14 15 16>
+	 <LTABLE (BYTE) 7 8 11 15 16>
+	 <LTABLE (BYTE) 9 10 14>
+	 <LTABLE (BYTE) 9 10 11 13 15>
+	 <LTABLE (BYTE) 10 11 12 14 16>
+	 <LTABLE (BYTE) 11 12 15>>>
+
+<GLOBAL NEXT-CUBE5
+	<TABLE (SHARED)
+	 <LTABLE (BYTE)
+		  1  2  3  4  5
+		  6  7  8  9 10
+		 11 12 13 14 15
+		 16 17 18 19 20
+		 21 22 23 24 25>
+	 <LTABLE (BYTE) 2 6 7>
+	 <LTABLE (BYTE) 1 3 6 7 8>
+	 <LTABLE (BYTE) 2 4 7 8 9>
+	 <LTABLE (BYTE) 3 5 8 9 10>
+	 <LTABLE (BYTE) 4 9 10>
+	 <LTABLE (BYTE) 1 2 7 11 12>
+	 <LTABLE (BYTE) 1 2 3 6 8 11 12 13>
+	 <LTABLE (BYTE) 2 3 4 7 9 12 13 14>
+	 <LTABLE (BYTE) 3 4 5 8 10 13 14 15>
+	 <LTABLE (BYTE) 4 5 9 14 15>
+	 <LTABLE (BYTE) 6 7 12 16 17>
+	 <LTABLE (BYTE) 6 7 8 11 13 16 17 18>
+	 <LTABLE (BYTE) 7 8 9 12 14 17 18 19>
+	 <LTABLE (BYTE) 8 9 10 13 15 18 19 20>
+	 <LTABLE (BYTE) 9 10 14 19 20>
+	 <LTABLE (BYTE) 11 12 17 21 22>
+	 <LTABLE (BYTE) 11 12 13 16 18 21 22 23>
+	 <LTABLE (BYTE) 12 13 14 17 19 22 23 24>
+	 <LTABLE (BYTE) 13 14 15 18 20 23 24 25>
+	 <LTABLE (BYTE) 14 15 19 24 25>
+	 <LTABLE (BYTE) 16 17 22>
+	 <LTABLE (BYTE) 16 17 18 21 23>
+	 <LTABLE (BYTE) 17 18 19 22 24>
+	 <LTABLE (BYTE) 18 19 20 23 25>
+	 <LTABLE (BYTE) 19 20 24>>>
+
+<GLOBAL CUBES4
+	<LTABLE 0
+		<TABLE (STRING) "DOKNUT">
+		<TABLE (STRING) "JAMOBQ">
+		<TABLE (STRING) "BAYTIL">
+		<TABLE (STRING) "MASORH">
+		<TABLE (STRING) "CIAOAT">
+		<TABLE (STRING) "RILUGW">
+		<TABLE (STRING) "FOXBIR">
+		<TABLE (STRING) "SEDWON">
+		<TABLE (STRING) "GIVENT">
+		<TABLE (STRING) "CALRES">
+		<TABLE (STRING) "SULPET">
+		<TABLE (STRING) "CEMPAD">
+		<TABLE (STRING) "GUKLEY">
+		<TABLE (STRING) "HENSIP">
+		<TABLE (STRING) "HEYIEF">
+		<TABLE (STRING) "DEZVAN">>>
+
+<GLOBAL CUBES5
+	<LTABLE 0
+		<TABLE (STRING) "PRYFIS">
+		<TABLE (STRING) "CLPEIT">
+		<TABLE (STRING) "AEEEEM">
+		<TABLE (STRING) "TOUOOT">
+		<TABLE (STRING) "EOTMTT">
+		<TABLE (STRING) "PRYIRR">
+		<TABLE (STRING) "HNODLR">
+		<TABLE (STRING) "ENSSSU">
+		<TABLE (STRING) "AGUEEM">
+		<TABLE (STRING) "AFSAAR">
+		<TABLE (STRING) "HLODHR">
+		<TABLE (STRING) "AMNEGN">
+		<TABLE (STRING) "JQXBKZ">
+		<TABLE (STRING) "DOTDHN">
+		<TABLE (STRING) "CPTEIS">
+		<TABLE (STRING) "CCSENT">
+		<TABLE (STRING) "AEEAEE">
+		<TABLE (STRING) "DNRHLO">
+		<TABLE (STRING) "EITIIT">
+		<TABLE (STRING) "AFRISY">
+		<TABLE (STRING) "IITCEL">
+		<TABLE (STRING) "AENDNN">
+		<TABLE (STRING) "ROVGRW">
+		<TABLE (STRING) "AFRAIS">
+		<TABLE (STRING) "NOTOUW">>>
+
+<GLOBAL SCORE-TABLE <TABLE 1 2 4 6 8 11>>
+
+<GLOBAL TRAY-ROT5
+	<TABLE <TABLE 1 1 1>
+	       <TABLE 21 -5 -4>
+	       <TABLE 25 -1 -1>
+	       <TABLE 5 5 4>>>
+
+<GLOBAL TRAY-ROT4
+	<TABLE <TABLE 1 1 1>
+	       <TABLE 13 -4 -3>
+	       <TABLE 16 -1 -1>
+	       <TABLE 4 4 3>>>
+
+<GLOBAL ROTATION 1>
+
+<GLOBAL ENT-LEN 4>
+
+<GLOBAL GAME-DATA <TABLE (SHARED) 0 0 0 0>>
+<CONSTANT GD-TRAY 0>
+<CONSTANT GD-CUBES 1>
+<CONSTANT GD-NEXT-CUBE 2>
+<CONSTANT GD-ENT-LEN 3>
+
+<GLOBAL TRAY4 <ITABLE 16 (BYTE LENGTH SHARED) 0>>
+<GLOBAL TRAY5 <ITABLE 25 (BYTE LENGTH SHARED) 0>>
+
+<ROUTINE PICK-ONE (FROB
+		   "AUX" (L <GET .FROB 0>) (CNT <GET .FROB 1>) RND MSG RFROB)
+	 <SET L <- .L 1>>
+	 <SET FROB <REST .FROB 2>>
+	 <SET RFROB <REST .FROB <* .CNT 2>>>
+	 <SET RND <RANDOM <- .L .CNT>>>
+	 <SET MSG <GET .RFROB .RND>>
+	 <PUT .RFROB .RND <GET .RFROB 1>>
+	 <PUT .RFROB 1 .MSG>
+	 <SET CNT <+ .CNT 1>>
+	 <COND (<==? .CNT .L> <SET CNT 0>)>
+	 <PUT .FROB 0 .CNT>
+	 .MSG>
+
+<ROUTINE SHAKE ("AUX" TR CU (CNT 0) TLEN)
+	 <SET TR <ZGET ,GAME-DATA ,GD-TRAY>>
+	 <SET TLEN <GETB .TR 0>>
+	 <SET CU <ZGET ,GAME-DATA ,GD-CUBES>>
+	 <PUT .CU 1 0>
+	 <REPEAT ()
+		 <COND (<IGRTR? CNT .TLEN> <RTRUE>)>
+		 <PUTB .TR
+		       .CNT
+		       <GETB <PICK-ONE .CU>
+			     <- <RANDOM 6> 1>>>>>
+
+<GLOBAL TRAY-X 10>
+<GLOBAL TRAY-Y 4>
+
+<ROUTINE TDISPLAY ("AUX" TR TLEN L TY TX CNT TMP)
+	 <SET TY ,TRAY-Y>
+	 <SET TX ,TRAY-X>
+	 <SET L ,ENT-LEN>
+	 <SET TR <ZGET ,GAME-DATA ,GD-TRAY>>
+	 <SET TLEN <GETB .TR 0>>
+	 <SCREEN 1>
+	 <CLEAR -1>
+	 <SPLIT 10>
+	 <SCREEN 1>
+	 <CURSET 1 <+ 2 ,TRAY-X>>
+	 <TELL "Boggle " N ,ENT-LEN>
+	 <CURSET 1 ,SCORE-X>
+	 <TELL "Tray " N <ST-ROUNDS ,MY-TAB>>
+	 <CURSET .TY .TX>
+	 <HLIGHT ,H-INVERSE>
+	 <REPEAT ()
+		 <COND (<IGRTR? CNT .TLEN>
+			<HLIGHT ,H-NORMAL>
+			<SCREEN 0>
+			<RTRUE>)>
+		 <SET TMP <GETB .TR .CNT>>
+		 <TELL " ">
+		 <COND (<EQUAL? .TMP %<ASCII !\Q>>
+			<TELL "Qu">)
+		       (ELSE
+			<TELL C .TMP " ">)>
+		 <COND (<ZERO? <MOD .CNT 4>>
+			<SET TY <+ .TY 1>>
+			<CURSET .TY .TX>)>>>
+
+<ROUTINE GAME4 ()
+	 <ZPUT ,GAME-DATA ,GD-TRAY ,TRAY4>
+	 <ZPUT ,GAME-DATA ,GD-CUBES ,CUBES4>
+	 <ZPUT ,GAME-DATA ,GD-NEXT-CUBE ,NEXT-CUBE4>
+	 <ZPUT ,GAME-DATA ,GD-ENT-LEN 4>
+	 <SETG ENT-LEN 4>>
+
+<ROUTINE GAME5 ()
+	 <ZPUT ,GAME-DATA ,GD-TRAY ,TRAY5>
+	 <ZPUT ,GAME-DATA ,GD-CUBES ,CUBES5>
+	 <ZPUT ,GAME-DATA ,GD-NEXT-CUBE ,NEXT-CUBE5>
+	 <ZPUT ,GAME-DATA ,GD-ENT-LEN 5>
+	 <SETG ENT-LEN 5>>
+
+<ROUTINE GO ()
+	 <COND (<==? <SERVER 0> 1>
+		<BOGGLE-SERVER>)
+	       (<OR <==? <SERVER 0> 2>
+		    <AND <TELL "Do you want to play the computer? ">
+			 <EQUAL? <INPUT 1> %<ASCII !\N> %<ASCII !\n>>>>
+		<CLEAR -1>
+		<BOGGLE-USER>)
+	       (T
+		<CLEAR -1>
+		<BOGGLE-SOLO>)>>
+
+<GLOBAL MY-BUFFERS <>>
+
+<GLOBAL ROUNDS 0>
+
+<ROUTINE BOGGLE-SOLO ()
+   <SETG MY-TAB <ZGET ,STATUS-TABLE 0>>
+   <SETG MY-BUFFERS <ST-BUFS ,MY-TAB>>
+   <GAME4>
+   <REPEAT ()
+	   <SPLIT 22>
+	   <TELL "[Type any character to begin]">
+	   <INPUT 1>
+	   <SPLIT 10>
+	   <SHAKE>
+	   <SETG ROUNDS <+ <ST-ROUNDS ,MY-TAB> 1>>
+	   <ST-ROUNDS ,MY-TAB ,ROUNDS>
+	   <GET-TRAY>
+	   <CLEAR 0>
+	   <SCREEN 0>
+	   <REPRINT-WORDS ,MY-BUFFERS>>>
+
+<ROUTINE GET-TRAY ()
+  <SETG TRAY <ZGET ,GAME-DATA ,GD-TRAY>>
+  <SETG ENT-LEN <ZGET ,GAME-DATA ,GD-ENT-LEN>>
+  <SPLIT 10>
+  <TDISPLAY>
+  <CLEAR 0>
+  <SETG WARNING-TIME 150>
+  <SETG WARNING-BASE 150>
+  <SETG REMAINING 1800>
+  <SHOW-TIME ,REMAINING>
+  <DO-READ>
+  <CHECK-WORDS>>
+
+<CONSTANT TCHARS <TABLE (BYTE KERNEL)
+			13	    ;"Char C.R."
+			10          ;"Char L.F."
+			%<ASCII !\ > ;"Char Space"
+			255
+			0>>
+
+<CONSTANT CURTBL <TABLE 0 0>>
+
+<ROUTINE DO-READ ()
+  <SETG LAST-CALL? 0>
+  <SETG BUFS-USED 0>
+  ; "Make the first buffer empty"
+  <PUTB <SETG INBUF <ZGET ,MY-BUFFERS <* ,BUFS-USED 2>>> 1 0>
+  <SETG INPUT-ABORTED? 0>
+  <RTIME T>
+  <REPEAT (TC CT (CURTAB ,CURTBL))
+    ; "Read without parsing, and with timeout"
+    <SET TC <READ ,INBUF
+		  <>
+		  ,WARNING-TIME
+		  ,TIMEOUT-HANDLER>>
+    <COND (<==? ,INPUT-ABORTED? 1>
+	   ; "Came because of timeout, but nothing to worry about"
+	   <SETG INPUT-ABORTED? 0>
+	   <AGAIN>)
+	  (<OR <G? ,INPUT-ABORTED? 0>
+	       <G=? .TC 128>>
+	   ; "Really timed out, or user typed function key"
+	   <RETURN>)>
+    <CURGET .CURTAB>
+    <COND (<G? <ZGET .CURTAB 1> <- <LOWCORE HWRD> 10>>
+	   <ZCRLF>)>
+    <COND (<L? <SET CT <GETB ,INBUF 1>> 240>
+	   ; "How full is buffer?"
+	   <SETG INPUT-ABORTED? 0>
+	   <PUTB ,INBUF <+ .CT 2> %<ASCII !\ >>
+	   <PUTB ,INBUF 1 <+ .CT 1>>)
+	  (<G=? <+ ,BUFS-USED 1> ,NUMBER-INBUFS>
+	   ; "Out of buffers, too bad"
+	   <SOUND 1>
+	   <SETG INPUT-ABORTED? 0>)
+	  (T
+	   ; "Go to the next buffer, empty it"
+	   <SETG INPUT-ABORTED? 0>
+	   <PUTB <SETG INBUF
+		       <ZGET ,MY-BUFFERS
+			     <* 2 <SETG BUFS-USED <+ ,BUFS-USED 1>>>>>
+		 1 0>)>
+    ; "Reduce time to timeout..."
+    <SETG WARNING-TIME <- ,WARNING-BASE <RTIME <>>>>>
+  ; "Now parse all the buffers we used"
+  <UPPERCASIFY>
+  <REPEAT ((N 0))
+    <LEX <ZGET ,MY-BUFFERS <* 2 .N>> <ZGET ,MY-BUFFERS <+ 1 <* 2 .N>>>>
+    <COND (<G? <SET N <+ .N 1>> ,BUFS-USED>
+	   <RETURN>)>>>
+
+<ROUTINE UPPERCASIFY ("AUX" LEN (CNT 0) TMP)
+  <REPEAT ((N 0))
+    <SETG INBUF <ZGET ,MY-BUFFERS <* 2 .N>>>
+    <SET LEN <GETB ,INBUF 1>>
+    <REPEAT ()
+      <COND (<G? <SET CNT <+ .CNT 1>> .LEN> <RETURN>)>
+      <SET TMP <GETB <REST ,INBUF> .CNT>>
+      <COND (<==? .TMP %<ASCII !\|>>
+	     <PUTB <REST ,INBUF> .CNT %<ASCII !\ >>)
+	    (<AND <G=? .TMP %<ASCII !\a>>
+		  <L=? .TMP %<ASCII !\z>>>
+	     <PUTB <REST ,INBUF> .CNT <- .TMP 32>>)>>
+    <COND (<G? <SET N <+ .N 1>> ,BUFS-USED> <RETURN>)>>>
+
+<ROUTINE REPRINT-WORDS (BUFS "AUX" (CNT 0) LEN BUF)
+  <REPEAT ((N 0))
+    <SETG INBUF <ZGET .BUFS <* 2 .N>>>
+    <SETG LEXV <ZGET .BUFS <+ 1 <* 2 .N>>>>
+    <SET BUF <REST ,LEXV 2>>
+    <SET LEN <GETB ,LEXV 1>>
+    <REPEAT ()
+      <COND (<G? <SET CNT <+ .CNT 1>> .LEN>
+	     <CRLF>
+	     <RETURN>)>
+      <PRINT-WORD .BUF>
+      <SET BUF <REST .BUF 4>>
+      <TELL " ">>
+    <COND (<G? <SET N <+ .N 1>> ,BUFS-USED> <RETURN>)>>>
+
+<ROUTINE PRINT-WORD (BUF "AUX" LEN BEG)
+	 <SET LEN <GETB .BUF 2>>
+	 <SET BEG <GETB .BUF 3>>
+	 <COND (<ZERO? <GET .BUF 0>>
+		<HLIGHT ,H-INVERSE>)
+	       (<L? <GET .BUF 0> 0>
+		<HLIGHT ,H-UNDER>)>
+	 <PRINTT <REST ,INBUF .BEG> .LEN 0>
+	 <HLIGHT ,H-NORMAL>>
+
+<GLOBAL INBUF <>>
+
+<GLOBAL LEXV <>>
+
+<GLOBAL BUFS-USED 0>
+
+<GLOBAL REMAINING 1800>
+
+<GLOBAL WARNING-TIME 150>
+<GLOBAL WARNING-BASE 150>
+
+<GLOBAL LAST-CALL? 0>
+
+<ROUTINE TIMEOUT-HANDLER ("AUX" (RT <RTIME T>))
+	 <SHOW-TIME <SETG REMAINING <- ,REMAINING .RT>>>
+	 <SETG WARNING-TIME 150>
+	 <SETG INPUT-ABORTED? 1>
+	 <COND (<G? ,REMAINING <* 2 ,WARNING-TIME>>)
+	       (<G? ,REMAINING 0>
+		<SOUND 1>
+		<SETG LAST-CALL? 1>)
+	       (<==? ,LAST-CALL? 1>
+		<SETG LAST-CALL? 2>
+		<SETG WARNING-TIME 50>
+		<SETG WARNING-BASE 50>
+		<SOUND 2>)
+	       (ELSE
+		<SETG INPUT-ABORTED? 2>
+		<RTRUE>)>
+	 T>
+
+<ROUTINE SHOW-TIME (TIME "AUX" TMP)
+	 <SCREEN 1>
+	 <CURSET <- ,TRAY-Y 2> <+ ,TRAY-X 4>>
+	 <COND (<L? ,REMAINING 0> <SETG REMAINING 0>)>
+	 <SET TMP </ ,REMAINING 10>>
+	 <TELL N </ .TMP 60> ":">
+	 <COND (<L? <SET TMP <MOD .TMP 60>> 10>
+		<TELL "0">)>
+	 <TELL N .TMP>
+	 <SCREEN 0>>
+
+<GLOBAL TRAY <>>
+
+<ROUTINE CHECK-WORDS ("AUX" CNT BUF)
+  <REPEAT ((N 0))
+    <SETG INBUF <ZGET ,MY-BUFFERS <* 2 .N>>>
+    <SETG LEXV <ZGET ,MY-BUFFERS <+ 1 <* 2 .N>>>>
+    <SET CNT <GETB ,LEXV 1>>
+    <SET BUF <REST ,LEXV 2>>
+    <REPEAT ()
+	    <COND (<ZERO? .CNT> <RETURN>)>
+	    <CHECK-WORD .BUF>
+	    <SET BUF <REST .BUF 4>>
+	    <SET CNT <- .CNT 1>>>
+    <COND (<G? <SET N <+ .N 1>> ,BUFS-USED> <RETURN>)>>
+  <DUPE-WORDS ,MY-BUFFERS>>
+
+<ROUTINE CHECK-WORD (BUF "AUX" LEN BEG TMP)
+	 <SET LEN <GETB .BUF 2>>
+	 <SET BEG <GETB .BUF 3>>
+	 <ZPUT .BUF 0 0>
+	 <COND (<AND <G=? .LEN ,ENT-LEN>
+		     <CHECK-LETTERS .BEG .LEN 0 0>>
+		<SET TMP <ZGET ,SCORE-TABLE <- .LEN ,ENT-LEN>>>
+		<COND (<UNKNOWN-WORD .BUF>
+		       <SET TMP <- .TMP>>)>
+		<ZPUT .BUF 0 .TMP>
+		T)>>
+
+<ROUTINE CHECK-LETTERS (BEG LEN CUBE GONE "AUX" NXT CNT)
+	 <SET NXT <GET <ZGET ,GAME-DATA ,GD-NEXT-CUBE> .CUBE>>
+	 <SET CNT <GETB .NXT 0>>
+	 <REPEAT ()
+		 <COND (<CHECK-LETTER .BEG .LEN <GETB .NXT .CNT> .GONE>
+			<RTRUE>)
+		       (<ZERO? <SET CNT <- .CNT 1>>>
+			<RFALSE>)>>>
+
+<ROUTINE CHECK-LETTER (BEG LEN CUBE GONE)
+	 <COND (<AND <NOT <INTBL? .CUBE ,USED .GONE 1>>
+		     <EQUAL? <GETB ,INBUF .BEG>
+			     <GETB ,TRAY .CUBE>>>
+		<COND (<ZERO? <SET LEN <- .LEN 1>>>
+		       <RTRUE>)>
+		<PUTB ,USED .GONE .CUBE>
+		<SET GONE <+ .GONE 1>>
+		<SET BEG <+ .BEG 1>>
+		<CHECK-LETTERS .BEG .LEN .CUBE .GONE>)
+	       (ELSE <RFALSE>)>>
+
+<GLOBAL USED <ITABLE 26 (BYTE) 0>>
+
+<ROUTINE UNKNOWN-WORD (BUF "AUX" LEN BEG)
+	 <SET LEN <GETB .BUF 2>>
+	 <SET BEG <GETB .BUF 3>>
+	 <NOT <WORD-IN-DICT? ,TREE ,INBUF .LEN .BEG>>>
+
+<ROUTINE WORD-IN-DICT? (TR BUF WLEN BEG "AUX" (CNT 1) LEN CHR)
+	 <SET LEN <GET .TR 0>>
+	 <COND (<ZERO? .WLEN>
+		<COND (<ZERO? <GET .TR 1>> <RTRUE>)
+		      (ELSE <RFALSE>)>)
+	       (ELSE
+		<SET CHR <GETB .BUF .BEG>>
+		<COND (<ZERO? <GET .TR 1>>
+		       <SET TR <REST .TR 2>>
+		       <SET LEN <- .LEN 1>>)>
+		<COND (<SET TR <INTBL? .CHR .TR .LEN>>
+		       <SET BEG <+ .BEG 1>>
+		       <SET WLEN <- .WLEN 1>>
+		       <COND (<EQUAL? .CHR %<ASCII !\Q>>
+			      <COND (<EQUAL? <GETB .BUF .BEG> %<ASCII !\U>>
+				     <SET BEG <+ .BEG 1>>
+				     <SET WLEN <- .WLEN 1>>)
+				    (ELSE
+				     <RFALSE>)>)>
+		       <WORD-IN-DICT? <GET .TR 1> .BUF .WLEN .BEG>)>)>>
+
+<ROUTINE DUPE-WORDS (BUFS "AUX" (CNT 0) LEX1 INB1 LEN)
+  <REPEAT ((N 0))
+    <SET LEX1 <ZGET .BUFS <+ 1 <* 2 .N>>>>
+    <SET INB1 <ZGET .BUFS <* 2 .N>>>
+    <SET LEN <GETB .LEX1 1>>
+    <SET LEX1 <REST .LEX1 2>>
+    <REPEAT ()
+      <COND (<G? <SET CNT <+ .CNT 1>> .LEN>
+	     <RETURN>)>
+      <COND (<NOT <ZERO? <GET .LEX1 0>>>
+	     <DUPE-WORD .LEX1 .INB1 .BUFS>)>
+      <SET LEX1 <REST .LEX1 4>>>
+    <COND (<G? <SET N <+ .N 1>> ,BUFS-USED> <RETURN>)>>>
+
+<ROUTINE DUPE-WORD (LEX1 INB1 BUFS "AUX" (CNT 0) LEN LEX2 INB2)
+  <REPEAT ((N 0))
+    <SET LEX2 <ZGET .BUFS <+ 1 <* 2 .N>>>>
+    <SET INB2 <ZGET .BUFS <* 2 .N>>>
+    <SET LEN <GETB .LEX2 1>>
+    <SET LEX2 <REST .LEX2 2>>
+    <REPEAT ()
+      <COND (<G? <SET CNT <+ .CNT 1>> .LEN>
+	     <RETURN>)>
+      <COND (<AND <NOT <ZERO? <GET .LEX2 0>>>
+		  <NOT <EQUAL? .LEX1 .LEX2>>
+		  <WORDS-EQUAL? .LEX1 .INB1 .LEX2 .INB2>>
+	     <PUT .LEX2 0 0>)>
+      <SET LEX2 <REST .LEX2 4>>>
+    <COND (<G? <SET N <+ .N 1>> ,BUFS-USED> <RETURN>)>>>
+
+<ROUTINE WORDS-EQUAL? (L1 I1 L2 I2
+		       "AUX" (LEN1 <GETB .L1 2>) (LEN2 <GETB .L2 2>)
+		       B1 B2)
+	 <COND (<EQUAL? .LEN1 .LEN2>
+		<SET B1 <GETB .L1 3>>
+		<SET B2 <GETB .L2 3>>
+		<REPEAT ()
+			<COND (<NOT <EQUAL? <GETB .I1 .B1> <GETB .I2 .B2>>>
+			       <RFALSE>)
+			      (<ZERO? <SET LEN1 <- .LEN1 1>>>
+			       <RTRUE>)
+			      (ELSE
+			       <SET B1 <+ .B1 1>>
+			       <SET B2 <+ .B2 1>>)>>)>>
+
+<OBJECT DUMMY
+	(DESC "FOO")
+	(FLAGS NDESCBIT)>

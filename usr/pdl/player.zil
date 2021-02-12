@@ -1,0 +1,251 @@
+"PLAYER FILE
+Copyright (C) 1987 Infocom, Inc.  All rights reserved."
+
+<CONSTANT TCHARS <TABLE (KERNEL BYTE) 255 0>>
+
+<GLOBAL COMPUTER? <>>
+
+<CONSTANT COMPUTER-ID 5>
+<GLOBAL COMPUTER-INBUFS <>>
+<GLOBAL COMPUTER-INBUF <>>
+<GLOBAL COMPUTER-LEXVS <>>
+<GLOBAL COMPUTER-LEXV <>>
+
+<CONSTANT COMPUTER <TABLE (PURE LENGTH BYTE) !\C !\o !\m !\p !\u !\t !\e !\r>>
+
+<CONSTANT TOP-LINES 6>
+<CONSTANT QUERY-LINES 22>
+
+<ROUTINE GO-PLAYER ("AUX" (1ST? T))
+	 <GAME4>
+	 <SPLIT ,TOP-LINES>
+	 <COND (<SETG COMPUTER? <YES? "Do you want to play the computer?">>
+		<SETG ROUND 1>
+		<SETG ID 1>
+		<PUT ,MOVE-TABLE ,ID ,B-READY>
+		<COMPUTER-JOINS>)
+	       (ELSE
+		<COND (<SETG ID <SEND ,M-JOIN>>
+		       <PRINTMOVE>
+		       <CLEAR 0>
+		       <TELL "Waiting for game to start." CR>)
+		      (T
+		       <CLEAR 0>
+		       <TELL "Sorry, the game is full." CR>
+		       <QUIT>)>)>
+	 <GET-TRUE-NAME <GET ,PLAYER-TABLE ,ID>>
+	 <SET-TABLES ,ID 0>
+	 <SETG INBUFS <GET ,INBUF-TABLE ,ID>>
+	 <SETG LEXVS <GET ,LEXV-TABLE ,ID>>
+	 <CLEAR 0>
+	 <PRINT-SCORES>
+	 <REPEAT ()
+		 <COND (,COMPUTER?
+			<PLAY-COMPUTER>
+			<SETG ROUND <+ ,ROUND 1>>)
+		       (ELSE
+			<PLAY-PEOPLE .1ST?>
+			<SET 1ST? <>>)>>>
+
+<ROUTINE COMPUTER-JOINS ()
+	 <SETG COMPUTER-INBUFS <GET ,INBUF-TABLE ,COMPUTER-ID>>
+	 <SETG COMPUTER-LEXVS <GET ,LEXV-TABLE ,COMPUTER-ID>>
+	 <PUT ,MOVE-TABLE ,COMPUTER-ID ,B-READY>
+	 <SET-TABLES ,COMPUTER-ID 0>
+	 <COPYT ,COMPUTER <GET ,PLAYER-TABLE ,COMPUTER-ID> 9>>
+
+<ROUTINE SET-TABLES (ID VAL)
+	 <PUT ,SCORE-TABLE .ID .VAL>
+	 <PUT ,TOTAL-TABLE .ID .VAL>
+	 <PUT ,ROUNDS-TABLE .ID .VAL>>
+
+<GLOBAL SCORE-Y 1>
+<GLOBAL SCORE-X 50>
+
+<ROUTINE PLAY-PEOPLE ("OPT" (1ST? <>))
+	 <COND (<NOT .1ST?>
+		<COND (<NOT <YES? "Another game?">>
+		       <SEND ,M-QUIT>
+		       <QUIT>)>
+		<COND (<NOT <DO-MOVE ,B-READY>> <RFALSE>)>)>
+	 <SHOW-ROUND>
+	 <TDISPLAY>
+	 <SETG WARNING-TIME 150>
+	 <SETG REMAINING 1800>
+	 <SHOW-TIME ,REMAINING>
+	 <CLEAR 0>
+	 <READ-WORDS>
+	 <COND (<NOT <DO-MOVE ,B-MOVED>> <RFALSE>)>
+	 <PRINT-SCORES>
+	 <PRINT-RESULTS>
+	 <COND (<CHALLENGE> <PRINT-SCORES>)>
+	 <RTRUE>>
+
+<ROUTINE CHALLENGE ()
+	 <COND (<YES? "Do you wish to challenge any words?">
+		<TELL "Too bad, challenging isn't implemented yet.">)>
+	 <COND (<NOT <DO-MOVE ,B-CHALLENGE>> <RFALSE>)>
+	 <RFALSE>>
+
+<ROUTINE DO-MOVE (MOV)
+	 <PUT ,MOVE-TABLE ,ID .MOV>
+	 <COND (<SEND ,M-MOVE> <PRINTMOVE>)
+	       (ELSE <SERVER-DEAD> <RFALSE>)>>
+
+<ROUTINE SERVER-DEAD ()
+	 <TELL "Sorry, server died." CR>>
+
+<ROUTINE READ-WORDS ("AUX" (BCNT 1) INDENT (NAME <GET ,PLAYER-TABLE ,ID>)
+		     TRM)
+	 <SET INDENT <+ <GETB .NAME 0> 2>>
+	 <INIT-BUFFERS ,ID>
+	 <SETG INBUFS <GET ,INBUF-TABLE ,ID>>
+	 <SETG LEXVS <GET ,LEXV-TABLE ,ID>>
+	 <REPEAT ()
+		 <SETG INBUF <GET ,INBUFS .BCNT>>
+		 <SETG LEXV <GET ,LEXVS .BCNT>>
+		 <COND (<EQUAL? .BCNT 1>
+			<PRINT-NAME .NAME>
+			<TELL ": ">)
+		       (ELSE
+			<PRINT <GET ,SPACES .INDENT>>)>
+		 <COND (<NOT <ZERO? <GETB ,INBUF 1>>>
+			<PRINTT <REST ,INBUF 2> <GETB ,INBUF 1> 0>)>
+		 <SET TRM <READ ,INBUF <> ,WARNING-TIME ,TIMEOUT-HANDLER>>
+		 <COND (<OR <EQUAL? .TRM 137 ;"keypad 0">
+			    <AND <ZERO? ,REMAINING>
+				 <EQUAL? ,WARNING-TIME 50>>>
+			<LEX-BUFFERS ,ID>
+			<RTRUE>)
+		       (<EQUAL? .TRM ,UP-ARROW>
+			<COND (<ZERO? <SET BCNT <- .BCNT 1>>>
+			       <SET BCNT ,MAX-LINES>)>
+			<NEW-INPUT-LINE .BCNT>)
+		       (<EQUAL? .TRM ,DOWN-ARROW 10>
+			<SPLIT 22>
+			<COND (<IGRTR? BCNT ,MAX-LINES>
+			       <SET BCNT 1>)>
+			<NEW-INPUT-LINE .BCNT>)
+		       (ELSE <SOUND ,S-BEEP>)>>>
+
+<ROUTINE NEW-INPUT-LINE (BCNT)
+	 <SPLIT 22>
+	 <SCREEN 1>
+	 <CURSET <+ ,TOP-LINES .BCNT> 1>
+	 <SPLIT ,TOP-LINES>
+	 <SCREEN 0>>
+
+<ROUTINE INIT-BUFFERS (I "AUX" (BCNT 0) B L BB LL)
+	 <SET BB <GET ,INBUF-TABLE .I>>
+	 <SET LL <GET ,LEXV-TABLE .I>>
+	 <REPEAT ()
+		 <COND (<IGRTR? BCNT ,MAX-LINES> <RTRUE>)>
+		 <SET B <GET .BB .BCNT>>
+		 <SET L <GET .LL .BCNT>>
+		 <PUTB .B 0 ,INBUF-LENGTH>
+		 <PUTB .B 1 0>
+		 <PUTB .L 0 ,LEXV-LENGTH>
+		 <PUTB .L 1 0>
+		 <COPYT <REST .B> <REST .B 2> <- 2 ,INBUF-LENGTH>>>>
+
+<ROUTINE LEX-BUFFERS (I "AUX" (BCNT 0) B L BB LL)
+	 <SET BB <GET ,INBUF-TABLE .I>>
+	 <SET LL <GET ,LEXV-TABLE .I>>
+	 <REPEAT ()
+		 <COND (<IGRTR? BCNT ,MAX-LINES> <RTRUE>)>
+		 <SET B <GET .BB .BCNT>>
+		 <SET L <GET .LL .BCNT>>
+		 <COND (<GETB .B 1>
+			<LEX .B .L>
+			<UPPERCASIFY .B>)>>>
+
+<ROUTINE PLAY-COMPUTER ()
+	 <SHAKE>
+	 <SHOW-ROUND>
+	 <TDISPLAY>
+	 <CLEAR 0>
+	 <SETG WARNING-TIME 150>
+	 <SETG REMAINING 1800>
+	 <SHOW-TIME ,REMAINING>
+	 <READ-WORDS>
+	 <COMPUTER-WORDS>
+	 <CHECK-ALL-WORDS>
+	 <CHECK-DUPS>
+	 <SCORE-ALL-WORDS>
+	 <PRINT-RESULTS>
+	 <PRINT-SCORES>
+	 <SPLIT ,QUERY-LINES>
+	 <COND (<YES? "Another game?">
+		<SPLIT ,TOP-LINES>)
+	       (ELSE
+		<QUIT>)>>
+
+<ROUTINE GET-TRUE-NAME (DEST "AUX" (CNT 0) TMP)
+	 <REPEAT ((N 56))
+		 <COND (<OR <EQUAL? .CNT ,MAX-NAME-LENGTH>
+			    <ZERO? <GETB 0 .N>>>
+			<PUTB .DEST 0 .CNT>
+			<RETURN>)
+		       (ELSE
+			<SET TMP <GETB 0 .N>>
+			;<COND (<AND <G? .CNT 0>
+				    <G=? .TMP !\A>
+				    <L=? .TMP !\Z>>
+			       <SET TMP <+ .TMP 32>>)>
+			<SET CNT <+ .CNT 1>>
+			<PUTB .DEST .CNT .TMP>
+			<SET N <+ .N 1>>)>>>
+
+<ROUTINE PRINT-NAME (TBL)
+	 <PRINTT <REST .TBL> <GETB .TBL 0> 0>
+	 <GETB .TBL 0>>
+
+<ROUTINE PRINT-NUMBER (N)
+	 <COND (<L? .N 10> <TELL "  ">)
+	       (<L? .N 100> <TELL " ">)>
+	 <PRINTN .N>>
+
+<GLOBAL SPACES <TABLE "          "
+		      "         "
+		      "        "
+		      "       "
+		      "      "
+		      "     "
+		      "    "
+		      "   "
+		      "  "
+		      " ">>
+
+<ROUTINE PRINT-SCORES ("AUX" Y X (ID ,MAX-PLAYERS) N)
+	 <SCREEN 1>
+	 <SET Y ,SCORE-Y>
+	 <SET X ,SCORE-X>
+	 <CURSET .Y .X>
+	 <HLIGHT ,H-UNDER>
+	 <TELL "Name    Score Tot. Rnds">
+	 <HLIGHT ,H-NORMAL>
+	 <SET Y <+ .Y 1>>
+	 <REPEAT ()
+		 <COND (<G=? <GET ,MOVE-TABLE .ID> 0>
+			<CURSET .Y .X>
+			<SET N <PRINT-NAME <GET ,PLAYER-TABLE .ID>>>
+			<COND (<L? .N 10>
+			       <TELL <GET ,SPACES .N>>)>
+			<PRINT-NUMBER <GET ,SCORE-TABLE .ID>>
+			<TELL "  ">
+			<PRINT-NUMBER <GET ,TOTAL-TABLE .ID>>
+			<TELL "  ">
+			<PRINT-NUMBER <GET ,ROUNDS-TABLE .ID>>
+			<SET Y <+ .Y 1>>)>
+		 <COND (<ZERO? <SET ID <- .ID 1>>>
+			<SCREEN 0>
+			<RTRUE>)>>>
+
+<ROUTINE PRINT-RESULTS ("AUX" (ID ,MAX-PLAYERS))
+	 <CLEAR 0>
+	 <SCREEN 0>
+	 <REPEAT ()
+		 <COND (<G=? <GET ,MOVE-TABLE .ID> 0>
+			<REPRINT-WORDS .ID>)>
+		 <COND (<ZERO? <SET ID <- .ID 1>>>
+			<RTRUE>)>>>

@@ -1,0 +1,13 @@
+"Source file"
+
+<VERSION YZIP>
+<SINGLE-FILE?>
+
+<CONSTANT FOOTBL <ITABLE 640>>
+
+<OBJECT FOO>
+
+<ROUTINE GO ()
+	 <PRINTI "Howdy! >">
+	 <INPUT 1>
+	 <QUIT>>

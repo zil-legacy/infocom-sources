@@ -1,0 +1,156 @@
+<VERSION YZIP>
+
+<SINGLE-FILE? T>
+
+<GLOBAL CARTOON 0>
+<GLOBAL CARTOON-MODE 0>
+<GLOBAL CARTOON-DIR 1>
+<GLOBAL CARTOON-Y 1>
+<GLOBAL CARTOON-X 1>
+<GLOBAL STAMP-Y 1>
+<GLOBAL STAMP-X 1>
+<GLOBAL CARTOON-BACK 0>
+<GLOBAL CARTOON-FIRST 0>
+<GLOBAL CARTOON-LAST 0>
+<GLOBAL CARTOON-N 0>
+
+<CONSTANT PTBL <TABLE 0 0>>
+
+<ROUTINE NEW-CARTOON (DESC)
+	 <SETG CARTOON-DIR 1>
+	 ;<PICINF .DESC ,PTBL>
+	 ;<SETG CARTOON-LAST <GET ,PTBL 1>>
+	 ;<SETG CARTOON-FIRST <GET ,PTBL 0>>
+	 <PICINF ,CARTOON-FIRST ,PTBL> ;"stamp offset"
+	 <SETG STAMP-Y <GET ,PTBL 0>>
+	 <SETG STAMP-X <GET ,PTBL 1>>
+	 <SETG CARTOON-FIRST <+ ,CARTOON-FIRST 1>>
+	 <PICINF ,CARTOON-FIRST ,PTBL> ;"background picture"
+	 <SETG CARTOON-Y </ <- <LOWCORE VWRD> <GET ,PTBL 0>> 2>>
+	 <SETG CARTOON-X </ <- <LOWCORE HWRD> <GET ,PTBL 1>> 2>>
+	 <SETG CARTOON-BACK ,CARTOON-FIRST>
+	 <SETG CARTOON-FIRST <+ ,CARTOON-FIRST 1>>
+	 <SETG CARTOON-N ,CARTOON-BACK> ;"first stamp"
+	 <DO-PICSET>
+	 .DESC>
+
+<ROUTINE ANIMATE (DESC)
+	 <NEW-CARTOON .DESC>
+	 <COND (<EQUAL? ,CARTOON-MODE 0> <INPUT 1 1 ,NEXT-CEL>)
+	       (<EQUAL? ,CARTOON-MODE 1 2>
+		<REPEAT ()
+			<COND (<EQUAL? ,CARTOON-MODE 2>
+			       <CLEAR 0>
+			       <PRINTI "Cel ">
+			       <PRINTN <- ,CARTOON-N ,CARTOON-BACK>>
+			       <PRINTI ": ">)>
+			<NEXT-CEL>
+			<COND (<EQUAL? ,CARTOON-MODE 2>
+			       <COND (<NOT <CARTOON-CMD>> <RETURN 127>)>)>
+			<COND (<EQUAL? ,CARTOON-N ,CARTOON-FIRST>
+			       <COND (<NOT <CARTOON-CMD>> <RETURN 127>)>)>>)>>
+
+<ROUTINE CARTOON-CMD ("AUX" CHR)
+	 <REPEAT ()
+		 <COND (<EQUAL? <SET CHR <INPUT 1>> 8 127>
+			<RFALSE>)
+		       (<EQUAL? .CHR !\->
+			<SETG CARTOON-DIR -1>)
+		       (<EQUAL? .CHR !\+>
+			<SETG CARTOON-DIR 1>)
+		       (ELSE <RETURN .CHR>)>>>
+
+<ROUTINE NEXT-CEL ()
+	 <SCREEN 1>
+	 <COND (<EQUAL? ,CARTOON-N ,CARTOON-BACK>
+		<DISPLAY ,CARTOON-N
+			 ,CARTOON-Y
+			 ,CARTOON-X>)
+	       (ELSE
+		<DISPLAY ,CARTOON-N
+			 <+ ,CARTOON-Y ,STAMP-Y>
+			 <+ ,CARTOON-X ,STAMP-X>>)>
+	 <SETG CARTOON-N <+ ,CARTOON-N ,CARTOON-DIR>>
+	 <COND (<G? ,CARTOON-N ,CARTOON-LAST>
+		<SETG CARTOON-N ,CARTOON-FIRST>)
+	       (<L? ,CARTOON-N ,CARTOON-BACK>
+		<SETG CARTOON-N ,CARTOON-LAST>)>
+	 <SCREEN 0>
+	 <RFALSE>>
+
+<CONSTANT CEL-TABLE <ITABLE 40 0>>
+
+<ROUTINE DO-PICSET ("AUX" (CNT 0))
+	 <REPEAT ((N ,CARTOON-FIRST))
+		 <PUT ,CEL-TABLE .CNT .N>
+		 <SET CNT <+ .CNT 1>>
+		 <COND (<IGRTR? N ,CARTOON-LAST>
+			<PUT ,CEL-TABLE .CNT 0>
+			<RETURN>)>>
+	 <PICSET ,CEL-TABLE>>
+
+<ROUTINE GO ()
+	 <CLEAR -1>
+	 <MAIN-LOOP>
+	 <QUIT>>
+
+<ROUTINE MAIN-LOOP ()
+	 <SET Y <SHIFT <WINGET 0 13 ;WFSIZE> -8>>
+	 <SPLIT <- <WINGET 0 2 ;WHIGH> .Y>>
+	 <REPEAT ()
+		 <CLEAR 0>
+		 <PRINTI "Start cartoon (">
+		 <REPEAT ((CNT 0))
+		    <COND (<G? <SET CNT <+ .CNT 1>> 9> <RETURN>)
+			  (<PICINF .CNT ,PTBL>
+			   <PRINTC <+ .CNT 48>>
+			   <PRINTI ", ">)>>
+		 <PRINT "or ">
+		 <COND (<EQUAL? ,CARTOON-MODE 0>
+			<PRINTI "F[ast], S[tep]">)
+		       (<EQUAL? ,CARTOON-MODE 1>
+			<PRINTI "N[ormal], S[tep]">)
+		       (<EQUAL? ,CARTOON-MODE 2>
+			<PRINTI "N[ormal], F[ast]">)>
+		 <PRINTI ", Q[uit]): ">
+		 <COND (<EQUAL? <SET N <INPUT 1>> !\Q !\q>
+			<QUIT>)
+		       (<EQUAL? .N !\N !\n>
+			<SETG CARTOON-MODE 0>)
+		       (<EQUAL? .N !\F !\f>
+			<SETG CARTOON-MODE 1>)
+		       (<EQUAL? .N !\S !\s>
+			<SETG CARTOON-MODE 2>)
+		       (<AND <G? .N !\0> <L=? .N !\9>>
+			<SET N <- .N 48>>
+			<COND (<NOT <EQUAL? .N ,CARTOON>>
+			       <CLEAR 1>)>
+			<CLEAR 0>
+			<PRINTI "Cartoon ">
+			<PRINTN .N>
+			<PRINTI " is ">
+			<COND (<PICINF .N ,PTBL>
+			       <SETG CARTOON .N>
+			       <PRINTN <SETG CARTOON-FIRST </ <GET ,PTBL 0> 2>>>
+			       <PRINTI ",">
+			       <PRINTN <SETG CARTOON-LAST </ <GET ,PTBL 1> 2>>>
+			       <PRINTI "; stamp ">
+			       <PRINT-PTBL ,CARTOON-FIRST>
+			       <PRINTI "; back ">
+			       <PRINT-PTBL <+ ,CARTOON-FIRST 1>>
+			       <PRINTI " / Stop: ">
+			       <COND (<EQUAL? <ANIMATE .N> !\Q !\q>
+				      <QUIT>)>)
+			      (ELSE
+			       <PRINTI "unknown">
+			       <SOUND 1>)>)>>>
+
+<ROUTINE PRINT-PTBL (N)
+	 <COND (<PICINF .N ,PTBL>
+		<PRINTN <GET ,PTBL 0>>
+		<PRINTI ",">
+		<PRINTN <GET ,PTBL 1>>
+		<RTRUE>)
+	       (ELSE
+		<PRINTI "??">
+		<RFALSE>)>>
